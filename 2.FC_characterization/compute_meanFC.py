@@ -1,5 +1,5 @@
 ######################################
-## functional connectivity analysis ##
+## FUNCTIONAL CONNECTIVITY ANALYSIS ##
 ######################################
 import os
 from os import listdir
