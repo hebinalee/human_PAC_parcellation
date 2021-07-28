@@ -1,3 +1,7 @@
+#################################
+## To perform gradient analysis
+#################################
+
 import os
 from os import listdir
 from os.path import join, exists, isfile, isdir
@@ -10,12 +14,8 @@ import nibabel as nib
 import zipfile
 
 if os.name == 'nt':
-	#store4 = 'X:/'
-	store6 = 'Y:/'
 	store7 = 'V:/'
 else:
-	#store4 = '/store4/'
-	store6 = '/store6/'
 	store7 = '/store7/'
 sys.path.append(store7 + 'hblee/MPI/1.gradient/congrads-master')
 import conmap_surf2, conmap_sim
@@ -123,16 +123,6 @@ def save_img(subID, hemi, nmaps=3):
 	
 	outfile = f'{outpath}/merged_seed.{hemi}.32k_fs_LR.cmaps.aligned.crop.func.gii'
 	nib.save(ref_img, outfile)
-
-
-def copy_results(hemi):
-	datapath = store7 + 'hblee/MPI/data'
-	sublist = sorted(listdir(datapath))
-	outpath = store7 + 'hblee/MPI/1.gradient/results6'
-	for sidx, subID in enumerate(sublist):
-		subpath = set_outpath(subID)
-		resultfile = subpath + '/merged_seed.%s.32k_fs_LR.cmaps.aligned.crop.func.gii' %hemi
-		shutil.copy(resultfile, f'{outpath}/{subID}.{hemi}.func.gii')
 
 
 def main(a, b, hemi='L', startname=None):
