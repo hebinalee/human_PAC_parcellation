@@ -3,5 +3,5 @@ In this part, we parcellated human primary auditory cortex(PAC) into subregions 
 
 We used [MRtrix3](https://www.mrtrix.org/) for probabilistic tractography.<br /><br />
 
-- **compute_meanFC.py**  -----  To calculate average FC values for each clusters<br />
-- **statistical_test_FC.py**   -----  To conduct statistical test<br /><br />
+- **PAC_clustering.py**  -----  To Perform clustering of PAC using SC<br />
+- **find_optimal_k.py**   -----  To Find optimal k for Kmeans clustering<br /><br />
