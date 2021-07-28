@@ -6,6 +6,6 @@ If you use this code, please cite the article.<br /><br />
 This study is divided into following 3 steps:<br />
 　　　**1)** Structural connectivity-based PAC parcellation<br />
 　　　**2)** Characterization of subregions in terms of functional connectome pattern<br />
-　　　**3)** Identification of functional hierarchy of subregions via gradient analysis<br />
+　　　**3)** Identification of functional hierarchy of subregions via gradient analysis<br /><br />
 
-**copyrightⓒ 2021 All rights reserved by Hyebin Lee<br /><br />**
+**copyrightⓒ 2021 All rights reserved by Hyebin Lee**
