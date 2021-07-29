@@ -5,5 +5,5 @@ We used [Koen Haak's code](https://github.com/koenhaak/congrads) to compute seed
 (The paper link: https://www.sciencedirect.com/science/article/pii/S1053811917305463)<br />
 [BCT Toolbox](https://sites.google.com/site/bctnet/) was used for gradient analysis.<br /><br />
 
-- **gradient_analysis.py**  -----  To perform gradient analysis<br />
-- **statistical_test.py**   -----  To conduct statistical test<br /><br />
+- **gradient_analysis.py**　-----　To perform gradient analysis<br />
+- **statistical_test.py**　　-----　To conduct statistical test<br /><br />
