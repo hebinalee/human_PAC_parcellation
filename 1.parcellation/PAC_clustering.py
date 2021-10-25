@@ -1,6 +1,10 @@
-#######################################
+##########################################################
 ## Perform clustering of PAC using SC
-#######################################
+##
+## map_t1w     : To create nifti image with given values
+## clustering  : To perform clustering based on the SC
+## main        : main function to parcel PAC region
+##########################################################
 
 import os
 from os import listdir
@@ -33,9 +37,7 @@ def map_t1w(labels, indices, ref_anat, out_path):
 	img = nib.Nifti1Image(temp_vol, temp_ref.affine)
 	nib.save(img, out_path)
 
-# clustering1 : remove HG, STG and IS from features
-# clustering3 : remove more regions with zero-std
-# clustering4 : remove more regions with zero-std, include STG and IS
+
 def clustering(subID, hemi, n_clusters):
 	subpath = join(store4, 'hblee/4.MPI/4.clustFC/data/', subID)
 	path_conn = join(subpath, 'tracto')
