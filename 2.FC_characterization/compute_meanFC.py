@@ -1,6 +1,11 @@
-######################################
-## FUNCTIONAL CONNECTIVITY ANALYSIS ##
-######################################
+#################################################################################################
+## FUNCTIONAL CONNECTIVITY ANALYSIS
+##
+## regist_clust : To register cluster labels onto the standard volume space
+## pearson_conn : To compute the Pearson's correlation coefficient from two time series signals
+## meanFC       : To compute cluster X target ROI F matrix in individual-level
+## initial_roi  : To return the indices of the initial ROI
+#################################################################################################
 
 import os
 from os import listdir
@@ -101,81 +106,6 @@ def meanFC(subID, version):
 		np.save(path_clust + '/meanFC.%s.K%d.npy' %(hemi, ncluster), meanFC)
 
 
-def plot_fc(subID, hemi, V_cluster):
-	ncluster = 3
-	subpath = join(store4, 'hblee/4.MPI/4.clustFC/data', subID)
-	path_clust = join(subpath, 'cluster%d/relabel-SC4' %V_cluster)
-	outpath = store4 + 'hblee/4.MPI/4.clustFC/figure/fc%d/' %V_cluster
-
-	#if not exists(outpath + subID + '-' + hemi + '.png'):
-	conn1 = np.load(path_clust + '/FC.K%d.%s.cluster1.npy' %(ncluster, hemi))
-	conn2 = np.load(path_clust + '/FC.K%d.%s.cluster2.npy' %(ncluster, hemi))
-	conn3 = np.load(path_clust + '/FC.K%d.%s.cluster3.npy' %(ncluster, hemi))
-	fig = plt.figure()
-	ax1 = fig.add_subplot(3, 1, 1)
-	ax2 = fig.add_subplot(3, 1, 2)
-	ax3 = fig.add_subplot(3, 1, 3)
-	#axes = (ax1, ax2, ax3)
-	plt.subplots_adjust(left=0.1, right=0.9)
-	ax1.imshow(conn1)
-	ax2.imshow(conn2)
-	ax3.imshow(conn3)
-	resize(axes)
-	#fig.set_figwidth(20)
-	#fig.colorbar(a, ax=ax1)
-	#fig.colorbar(b, ax=ax2)
-	#fig.colorbar(c, ax=ax3)
-	#plt.show()
-	fig.savefig(outpath + subID + '-' + hemi + '.png')
-
-
-def plot_fc2(subID, hemi, V_cluster):
-	ncluster = 3
-	subpath = join(store4, 'hblee/4.MPI/4.clustFC/data', subID)
-	path_clust = join(subpath, 'cluster%d/relabel-SC4' %V_cluster)
-	outpath = store4 + 'hblee/4.MPI/4.clustFC/figure/fc%d/' %V_cluster
-
-	#if not exists(outpath + subID + '-' + hemi + '.png'):
-	conn = [None]*ncluster
-	fig, axes = plt.subplots(nrows=3, ncols=1)
-	#plt.subplots_adjust(left=0.1, right=0.9)
-	for i in range(ncluster):
-		conn[i] = np.load(path_clust + '/FC.K%d.%s.cluster%d.npy' %(ncluster, hemi, i+1))
-		axes[i].imshow(conn[i])
-		f = axes[i].figure
-	#resize(axes)
-	#fig.tight_layout()
-	#fig.set_figwidth(20)
-	#fig.subplots_adjust(wspace=0.8, hspace=0.6)
-	fig.savefig(outpath + hemi + '-' + subID + '.png')
-
-
-def resize(axes):
-	# this assumes a fixed aspect being set for the axes.
-	for ax in axes:
-		width = np.diff(ax.get_xlim())[0]
-		height = -np.diff(ax.get_ylim())[0]
-		fig = ax.figure
-		fixed = 30
-		fig.set_size_inches(fixed*height/width, fixed)
-		#fig.set_size_inches(fixed, fixed*height/width)
-
-
-def plot_meanfc(subID, hemi, V_cluster, V_label):
-	ncluster = 3
-	subpath = join(store4, 'hblee/4.MPI/4.clustFC/data', subID)
-	path_clust = join(subpath, 'cluster%d' %V_cluster, 'relabel-SC%d/' %V_label)
-	if V_label == 0:
-		path_clust = join(subpath, 'cluster%d/relabel-SC/' %V_cluster)
-	outpath = store4 + 'hblee/4.MPI/4.clustFC/figure/fc%d/' %V_cluster
-
-	#if not exists(outpath + subID + '-' + hemi + '.png'):
-	if exists(path_clust + '/meanFC.%s.K%d.npy' %(hemi, ncluster)):
-		conn = np.load(path_clust + '/meanFC.%s.K%d.npy' %(hemi, ncluster))
-		plt.imshow(conn)
-		plt.savefig(outpath + hemi + '-' + subID + '.png')
-
-
 def initial_roi(subID, hemi):
 	ncluster = 3
 	subpath = join(store4, 'hblee/4.MPI/4.clustFC/data', subID)
@@ -204,13 +134,7 @@ def initial_roi(subID, hemi):
 		hg = hg*2
 		insula = insula*3
 		threeroi = stg + hg + insula
-
-		# Using mask of valid_idx
-		clust_file = subpath + '/cluster1/%s.clust.K3.KMeans.nii.gz' %hemi
-		clust = nib.load(clust_file).get_fdata()
-		validroi = threeroi * (clust > 0)
-		np.unique(validroi)
-	return hg, stg, insula, threeroi, validroi
+	return hg, stg, insula, threeroi
 
 
 def main(a, b, version, startname=None):
