@@ -1,6 +1,12 @@
-#################################
+###############################################################################################
 ## To perform gradient analysis
-#################################
+##
+## calculate_sim  : To compute simmularity matrix from FC matrix
+## gradient       : To perform gradient analysis in individual-level
+## group_average  : To compute the group-averaged gradient
+## align_gradient : To align individual-level gradient onto the group-averaged gradient space
+## save_img       : To save gifti image file including gradient informations
+###############################################################################################
 
 import os
 from os import listdir
@@ -33,6 +39,7 @@ def calculate_sim(subID, hemi):
 	S += compute_affinity(x, kernel='cosine', sparsity=0)
 	S /= 2
 	return S
+
 
 def gradient(hemi):
 	datapath = store7 + 'hblee/MPI/data'
