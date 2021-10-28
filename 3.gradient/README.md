@@ -1,5 +1,5 @@
 ## Step 3) Gradient analysis ##
-In this part, we identidied functional hierarchy of PAC and compared this patterns with pacellation labels.<br /><br />
+In this part, we identified functional hierarchy of PAC and compared this patterns with pacellation labels.<br /><br />
 
 We utilized **[Koen Haak's code](https://github.com/koenhaak/congrads)** to compute seed X target correlation matrix.<br />
 (The paper link: https://www.sciencedirect.com/science/article/pii/S1053811917305463)<br />
