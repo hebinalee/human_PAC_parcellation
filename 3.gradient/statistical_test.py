@@ -1,6 +1,13 @@
-################################
+##################################################################################################
 ## TO CONDUCT STATISTICAL TEST
-################################
+##
+## dilate_seed          : To dilate valid_seed and map onto MNI_2mm space(vol) and surface space
+## manual_interpolation : To perform iterative dilation of valid_seed region
+## save_norm_img        : To normalize gradient and save into GIFTI file
+## calculate_mean_grad  : To compute averaged gradient of clusters for each individual
+## save_mean_grad       : To save averaged gradient values
+## ttest                : To perform two-sample t-test
+##################################################################################################
 
 import os
 from os import listdir
@@ -13,7 +20,6 @@ import numpy as np
 import nibabel as nib
 from scipy.stats import ttest_ind
 from statsmodels.stats.multitest import multipletests
-#import cv2
 
 basepath = 'X:/path/myfolder/'
 sys.path.append(basepath + 'congrads-master')
