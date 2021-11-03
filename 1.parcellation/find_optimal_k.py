@@ -12,16 +12,15 @@ from os import listdir
 from os.path import isfile, join, exists
 import numpy as np
 import matplotlib.pyplot as plt
-if os.name == 'nt':
-	store4 = 'X:/'
-else:
-	store4 = '/store4/'
 import nibabel as nib
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
 from scipy.spatial.distance import cdist
 from kneed import KneeLocator
 
+basepath = 'X:/path/myfolder/'
+datapath = basepath + 'data/'
+mainpath = basepath + 'SC_parc/'
 
 def find_elbow(coeff):
 	x = np.arange(2,11)
@@ -38,9 +37,9 @@ def find_elbow(coeff):
 	return x[np.where(rotated_vector[1,:] == rotated_vector[1,:].min())[0][0]]
 
 def kmeans_elbow(subID, hemi):
-	subpath = join(store4, 'hblee/4.MPI/4.clustFC/data/', subID)
+	subpath = join(datapath, subID)
 	path_conn = join(subpath, 'tracto')
-	path_clust = join(subpath, 'cluster4')
+	path_clust = join(subpath, 'cluster')
 	if not os.path.exists(path_clust):
 		os.makedirs(path_clust)
 
@@ -86,7 +85,6 @@ def kmeans_elbow(subID, hemi):
 
 
 def main_elbow(a, b):
-	datapath = store4 + 'hblee/4.MPI/4.clustFC/data/'
 	sublist = listdir(datapath)
 	#filelist = [join(datapath, x, 'T1w') for x in listdir(datapath) if len(x)==6]
 	if type(a) == str:
@@ -102,17 +100,17 @@ def main_elbow(a, b):
 		for sidx, sname in enumerate(sublist):
 			print('%dth sub - %s - clustering\n' %(sidx+1, sname))
 			distortions[sidx] = kmeans_elbow(sname, hemi)
-		np.save(store4 + 'hblee/4.MPI/4.clustFC/%s-distortion.npy' %hemi, distortions)
+		np.save(mainpath + '%s-distortion.npy' %hemi, distortions)
 
 
 def save_figure(hemi):
 	x = np.arange(2,11)
-	elbow = np.load(store4 + 'hblee/4.MPI/4.clustFC/%s-inertia.npy' %hemi)
+	elbow = np.load(mainpath + '%s-inertia.npy' %hemi)
 	avg = np.mean(elbow, axis=0)
 	kn = KneeLocator(x, avg, curve='convex', direction='decreasing')
 	plt.plot(x, avg)
 	plt.xlabel('k')
 	plt.ylabel('Inertia')
 	plt.vlines(kn.knee, plt.ylim()[0], plt.ylim()[1], linestyles='dashed')
-	plt.savefig(store4 + 'hblee/4.MPI/4.clustFC/figure/%s-inertia.png' %hemi)
+	plt.savefig(mainpath + 'figure/%s-inertia.png' %hemi)
 	plt.close()
