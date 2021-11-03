@@ -15,14 +15,10 @@ from scipy.stats import f_oneway
 from statsmodels.stats.multitest import multipletests
 import pandas as pd
 
-if os.name == 'nt':
-	store4 = 'X:/'
-else:
-	store4 = '/store4/'
-
+basepath = 'X:/path/myfolder/'
 
 def roiconn(hemi, version, conntype):
-	datapath = store4 + 'hblee/4.MPI/4.clustFC/data/'
+	datapath = basepath + 'data/'
 	sublist = listdir(datapath)
 	Nsub = len(sublist)
 	Nroi = 41
@@ -39,9 +35,9 @@ def roiconn(hemi, version, conntype):
 	i = 0
 	for sidx, sname in enumerate(sublist):
 		if version == 3:
-			subpath = join(store4, 'hblee/4.MPI/4.clustFC/data', sname, 'cluster%d/relabel-SC4/' %version)
+			subpath = join(basepath, 'data', sname, 'cluster%d/relabel-SC4/' %version)
 		else:
-			subpath = join(store4, 'hblee/4.MPI/4.clustFC/data', sname, 'cluster%d/relabel-SC/' %version)
+			subpath = join(basepath, 'data', sname, 'cluster%d/relabel-SC/' %version)
 
 		if exists(subpath + 'mean%s.%s.K%d.npy' %(connname, hemi, ncluster)):
 			subconn = np.load(subpath + 'mean%s.%s.K%d.npy' %(connname, hemi, ncluster))
@@ -50,14 +46,13 @@ def roiconn(hemi, version, conntype):
 
 	for roi in range(Nroi):
 		roiconn = meanconn[:,:,roi]
-		np.save(store4 + 'hblee/4.MPI/4.clustFC/stat/cluster%d/roi%s/' %(version, connname) + '%s-ROI%d.npy' %(hemi, roi+1), roiconn)
+		np.save(basepath, 'stat/cluster%d/roi%s/' %(version, connname) + '%s-ROI%d.npy' %(hemi, roi+1), roiconn)
 
 
 def ttest(hemi, version, conntype):
 	ncluster = 3
 	Nroi = 41
-	inpath = join(store4, 'hblee/4.MPI/4.clustFC/stat/cluster%d/' %version)
-	#outpath = store4 + 'hblee/4.MPI/4.clustFC/stat/'
+	inpath = join(basepath, 'stat/cluster%d/' %version)
 	conn = ['SC', 'FC']
 	connname = conn[conntype-1]
 
