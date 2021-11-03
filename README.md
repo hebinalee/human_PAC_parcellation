@@ -8,4 +8,4 @@ This study is divided into following 3 steps:<br />
 　　　**2)** Characterization of subregions in terms of functional connectome pattern<br />
 　　　**3)** Identification of functional hierarchy of subregions via gradient analysis<br /><br />
 
-**copyrightⓒ 2021 All rights reserved by Hyebin Lee**
+**copyrightⓒ 2021 All rights reserved by Hyebin Lee and Kyoungseob Byeon**
