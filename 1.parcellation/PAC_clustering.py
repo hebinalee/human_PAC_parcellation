@@ -11,16 +11,13 @@ from os import listdir
 from os.path import isfile, join, exists
 import glob
 import numpy as np
-if os.name == 'nt':
-	store4 = 'X:/'
-	from mayavi import mlab
-else:
-	store4 = '/store4/'
+from mayavi import mlab
 import nibabel as nib
 from sklearn.cluster import KMeans
-#from sklearn.metrics.pairwise import cosine_similarity
-#from sklearn.decomposition import PCA
-#from scipy import sparse, stats
+
+basepath = 'X:/path/myfolder/'
+datapath = basepath + 'data/'
+mainpath = basepath + 'SC_parc/'
 
 ## seed ROI index:
 ## Left : 29(STG), 33(HG), 34(IS)
@@ -39,9 +36,9 @@ def map_t1w(labels, indices, ref_anat, out_path):
 
 
 def clustering(subID, hemi, n_clusters):
-	subpath = join(store4, 'hblee/4.MPI/4.clustFC/data/', subID)
+	subpath = join(datapath, subID)
 	path_conn = join(subpath, 'tracto')
-	path_clust = join(subpath, 'cluster5')
+	path_clust = join(subpath, 'cluster')
 	if not os.path.exists(path_clust):
 		os.makedirs(path_clust)
 
@@ -102,10 +99,8 @@ def clustering(subID, hemi, n_clusters):
 
 
 def main(a, b, startname=None):
-	datapath = store4 + 'hblee/4.MPI/4.clustFC/data/'
 	sublist = listdir(datapath)
 	sublist = sorted(listdir(datapath))
-	#filelist = [join(datapath, x, 'T1w') for x in listdir(datapath) if len(x)==6]
 	if startname:
 		a = sublist.index(startname)
 	
