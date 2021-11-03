@@ -15,16 +15,13 @@ from scipy.stats import ttest_ind
 from statsmodels.stats.multitest import multipletests
 #import cv2
 
-if os.name == 'nt':
-	store7 = 'V:/'
-else:
-	store7 = '/store7/'
-sys.path.append(store7 + 'hblee/MPI/1.gradient/congrads-master')
+basepath = 'X:/path/myfolder/'
+sys.path.append(basepath + 'congrads-master')
 import conmap_surf2, conmap_sim
 
-def set_subpath(subID): return store7 + 'hblee/MPI/data/' + subID
-def set_inpath(subID): return store7 + 'hblee/MPI/data1/' + subID
-def set_outpath(subID): return store7 + 'hblee/MPI/data/' + subID + '/6.gradient_cosine'
+def set_subpath(subID): return basepath + 'data/' + subID
+def set_inpath(subID): return basepath + 'data/' + subID
+def set_outpath(subID): return basepath + 'data/' + subID + '/gradient'
 
 
 def dilate_seed(subID, hemi):
