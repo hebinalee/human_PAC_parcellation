@@ -19,16 +19,13 @@ import numpy as np
 import nibabel as nib
 import zipfile
 
-if os.name == 'nt':
-	store7 = 'V:/'
-else:
-	store7 = '/store7/'
-sys.path.append(store7 + 'hblee/MPI/1.gradient/congrads-master')
+basepath = 'X:/path/myfolder/'
+sys.path.append(basepath + 'congrads-master')
 import conmap_surf2, conmap_sim
 
-def set_subpath(subID): return store7 + 'hblee/MPI/data/' + subID
-def set_inpath(subID): return store7 + 'hblee/MPI/data/' + subID + '/4.gradient_new'
-def set_outpath(subID): return store7 + 'hblee/MPI/data/' + subID + '/6.gradient_cosine'
+def set_subpath(subID): return basepath + 'data/' + subID
+def set_inpath(subID): return basepath + 'data/' + subID + '/seed_surf'
+def set_outpath(subID): return basepath + 'data/' + subID + '/gradient'
 
 from brainspace.gradient.kernels import compute_affinity
 def calculate_sim(subID, hemi):
