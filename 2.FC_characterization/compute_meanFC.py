@@ -15,15 +15,11 @@ import numpy as np
 import nibabel as nib
 import matplotlib.pyplot as plt
 
-if os.name == 'nt':
-	store4 = 'X:/'
-else:
-	store4 = '/store4/'
-
+basepath = 'X:/path/myfolder/'
 
 # Cluster results - native(acpc) volume to standard volume
 def regist_clust(subID, ncluster, version):
-	subpath = join(store4, 'hblee/4.MPI/4.clustFC/data', subID)
+	subpath = join(basepath, 'hblee/data', subID)
 	standard = '/usr/local/fsl/data/standard/MNI152_T1_2mm_brain.nii.gz'
 	warpfile = join(subpath, 'T1w/acpc_dc2standard.nii.gz')
 	path_clust = join(subpath, 'cluster%d' %version)
@@ -53,7 +49,7 @@ def pearson_conn(x, y):
 
 def meanFC(subID, version):
 	ncluster = 3
-	subpath = join(store4, 'hblee/4.MPI/4.clustFC/data', subID)
+	subpath = join(basepath, 'data', subID)
 	path_clust = join(subpath, 'cluster%d/relabel-SC/' %version)
 
 	fmri_file = join(subpath, 'rsfMRI/rfMRI_REST1_LR.nii.gz')
@@ -108,7 +104,7 @@ def meanFC(subID, version):
 
 def initial_roi(subID, hemi):
 	ncluster = 3
-	subpath = join(store4, 'hblee/4.MPI/4.clustFC/data', subID)
+	subpath = join(basepath, 'data', subID)
 	# roi_file = join(subpath, 'tracto/roi_MNI2mm.nii.gz')
 	roi_file = join(subpath, 'tracto/dil.fs_default.nodes.fixSGM.nii.gz')
 	roi = nib.load(roi_file).get_fdata()
@@ -138,7 +134,7 @@ def initial_roi(subID, hemi):
 
 
 def main(a, b, version, startname=None):
-	datapath = store4 + 'hblee/4.MPI/4.clustFC/data/'
+	datapath = basepath + 'data/'
 	sublist = listdir(datapath)
 	if startname:
 		a = sublist.index(startname)
@@ -149,18 +145,9 @@ def main(a, b, version, startname=None):
 		sublist = sublist[a:b]  # 162026 ~ 793465
 	
 	ncluster = 3
-	basepath = join(store4, 'hblee/4.MPI/4.clustFC/figure/fc3/')
 	for sidx, sname in enumerate(sublist):
 		print('%dth sub - %s - FC analysis on cluster\n' %(sidx+1, sname))
-		#regist_clust(sname, ncluster, version)
-		#fc(sname, 4)
 		meanFC(sname, version)
-		#if exists(join(store4, 'hblee/4.MPI/4.clustFC/data', sname, 'cluster3/relabel-SC4/meanFC.L.K3.npy')):
-		#	plot_fc2(sname, 'L', version)
-		#if exists(join(store4, 'hblee/4.MPI/4.clustFC/data', sname, 'cluster3/relabel-SC4/meanFC.R.K3.npy')):
-		#	plot_fc2(sname, 'R', version)
-		#plot_meanfc(sname, 'L', version, 0)
-		#plot_meanfc(sname, 'R', version, 0)
 
 
 if __name__ == "__main__":
