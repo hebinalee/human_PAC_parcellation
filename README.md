@@ -7,5 +7,5 @@
 　　　**1)** Structural connectome-based PAC parcellation<br />
 　　　**2)** Characterization of subregions in terms of functional connectome pattern<br />
 　　　**3)** Identification of functional hierarchy of subregions via gradient analysis<br /><br />
-
+:pushpin:
 **copyrightⓒ 2021 All rights reserved by Hyebin Lee and Kyoungseob Byeon**
