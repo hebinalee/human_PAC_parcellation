@@ -17,7 +17,6 @@ from sklearn.cluster import KMeans
 
 basepath = 'X:/path/myfolder'
 datapath = basepath + '/data'
-mainpath = basepath + '/SC_parc'
 
 ## seed ROI index:
 ## Left : 29(STG), 33(HG), 34(IS)
