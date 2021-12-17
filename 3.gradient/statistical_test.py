@@ -23,6 +23,7 @@ from statsmodels.stats.multitest import multipletests
 
 basepath = 'X:/path/myfolder'
 datapath = basepath + '/data'
+Nclusters = 3
 
 sys.path.append(basepath + '/congrads-master')
 import conmap_surf2, conmap_sim
@@ -37,7 +38,7 @@ def dilate_seed(subID, hemi):
 	inpath = set_inpath(subID)
 	outpath = set_outpath(subID)
 	
-	labels_dir = f'{inpath}/cluster4/relabel-SC/{hemi}.clust.K3.relabel.nii.gz'
+	labels_dir = f'{inpath}/cluster/relabel-SC/{hemi}.clust.K3.relabel.nii.gz'
 	seed_dir = f'{subpath}/1.gradient_DWI/seed_{hemi}.nii.gz'
 	output_dir = f'{outpath}/{hemi}.clust.K3.dilated.nii.gz'
 	ref_img = nib.load(labels_dir)
@@ -117,7 +118,7 @@ def save_norm_img(subID, hemi, nmaps=3):
 	nib.save(ref_img, outfile)
 
 
-def calculate_mean_grad(subID, hemi, nClusters=3):
+def calculate_mean_grad(subID, hemi):
 	subpath = set_subpath(subID)
 	outpath = set_outpath(subID)
 	if exists(f'{outpath}/cluster_K3.{hemi}.32k_fs_LR.label.gii'):
@@ -127,7 +128,7 @@ def calculate_mean_grad(subID, hemi, nClusters=3):
 	gradient = nib.load(f'{outpath}/merged_seed.{hemi}.32k_fs_LR.cmaps.aligned.norm.crop.func.gii').darrays[0].data
 
 	mean_gradient = []
-	for i in range(nClusters):
+	for i in range(Nclusters):
 		label_grad = gradient[labels == i+1]
 		nonzero_grad = label_grad[label_grad != 0]
 		# If all values are zero
@@ -155,14 +156,13 @@ def save_mean_grad():
 
 
 def ttest(hemi):
-	nClusters = 3
 	mean_grad = sio.loadmat(f'{store7}hblee/MPI/1.gradient/mean_gradient_{hemi}.mat')['mean_grad']
 	Nsub = mean_grad.shape[0]
 	
-	t = np.zeros(nClusters)
-	p = np.zeros(nClusters)
+	t = np.zeros(Nclusters)
+	p = np.zeros(Nclusters)
 	corrected = np.zeros_like(p)
-	for i in range(nClusters):
+	for i in range(Nclusters):
 		t[0], p[0] = ttest_ind(mean_grad[:,0], mean_grad[:,1])
 		t[1], p[1] = ttest_ind(mean_grad[:,1], mean_grad[:,2])
 		t[2], p[2] = ttest_ind(mean_grad[:,2], mean_grad[:,0])
