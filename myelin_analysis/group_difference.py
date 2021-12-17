@@ -20,16 +20,18 @@ import scipy.io as sio
 import pandas as pd
 import matplotlib.pyplot as plt
 
+basepath = 'X:/path/myfolder'
+datapath = basepath + '/data'
+mainpath = basepath + '/struct_analysis'
 Nclusters = 3
-
 
 '''''
 Step 1) Compute average myelin density & cortical thickness values
 '''''
 def compute_mean_values(subID, hemi):
 	# Get cluster labels
-	subpath = f'{store7}hblee/MPI/data/{subID}'
-	labels_file = f'{subpath}/6.gradient_cosine/cluster_K3.{hemi}.32k_fs_LR.func.gii'
+	subpath = f'{datapath}/{subID}'
+	labels_file = f'{subpath}/6.gradient/cluster_K3.{hemi}.32k_fs_LR.func.gii'
 	labels = nib.load(labels_file).darrays[0].data    # 32492 vector
   
   # Do not compute average values if no voxel assigned in cluster label
@@ -39,10 +41,10 @@ def compute_mean_values(subID, hemi):
 			return 0, 0
 
 	# Get myelin density & thickness
-	datapath = subpath + '/fsaverage_LR32k'
-	myelin_file = f'{datapath}/{subID}.{hemi}.MyelinMap_BC.32k_fs_LR.func.gii'
+	inpath = subpath + '/fsaverage_LR32k'
+	myelin_file = f'{inpath}/{subID}.{hemi}.MyelinMap_BC.32k_fs_LR.func.gii'
 	myelin = nib.load(myelin_file).darrays[0].data
-	thickness_file = f'{datapath}/{subID}.{hemi}.thickness.32k_fs_LR.shape.gii'
+	thickness_file = f'{inpath}/{subID}.{hemi}.thickness.32k_fs_LR.shape.gii'
 	thickness = nib.load(thickness_file).darrays[0].data
 
   # Compute averaged values of subregions
@@ -55,7 +57,6 @@ def compute_mean_values(subID, hemi):
 
 
 def main_compute_mean():
-	datapath = store7 + 'hblee/MPI/data'
 	sublist = sorted(listdir(datapath))
 
 	for hemi in ['L', 'R']:
@@ -69,7 +70,7 @@ def main_compute_mean():
 				mean_myelin.append(myelin)
 				mean_thickness.append(thickness)
 
-		sio.savemat(f'{store7}hblee/MPI/2.additional/mean_myelin_thick_{hemi}.mat', mdict={'mean_myelin': np.array(mean_myelin), 'mean_thickness': np.array(mean_thickness)})
+		sio.savemat(f'{mainpath}/mean_myelin_thick_{hemi}.mat', mdict={'mean_myelin': np.array(mean_myelin), 'mean_thickness': np.array(mean_thickness)})
 	return
 
 
