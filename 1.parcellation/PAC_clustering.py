@@ -15,15 +15,15 @@ from mayavi import mlab
 import nibabel as nib
 from sklearn.cluster import KMeans
 
-basepath = 'X:/path/myfolder/'
-datapath = basepath + 'data/'
-mainpath = basepath + 'SC_parc/'
+basepath = 'X:/path/myfolder'
+datapath = basepath + '/data'
+mainpath = basepath + '/SC_parc'
 
 ## seed ROI index:
 ## Left : 29(STG), 33(HG), 34(IS)
 ## Right: 78(STG), 82(HG), 83(IS)
 
-def map_t1w(labels, indices, ref_anat, out_path):
+def map_t1w(labels, indices, ref_anat, outpath):
 	import copy
 	temp_ref = copy.deepcopy(ref_anat)
 	temp_vol = np.zeros(temp_ref.shape)
@@ -32,7 +32,7 @@ def map_t1w(labels, indices, ref_anat, out_path):
 	#temp_vol[seed_idx] += no_conn_vox
 	temp_vol[indices] = labels
 	img = nib.Nifti1Image(temp_vol, temp_ref.affine)
-	nib.save(img, out_path)
+	nib.save(img, outpath)
 
 
 def clustering(subID, hemi, n_clusters):
@@ -93,7 +93,7 @@ def clustering(subID, hemi, n_clusters):
 			sorted_labels + 1,
 			tuple(hemi_idx.T),
 			ref_anat,
-			'%s/%s.clust.K%d.nii.gz' %(path_clust, hemi, n_clusters)
+			f'{path_clust}/{hemi}.clust.K{n_clusters}.nii.gz'
 			)
 	#return hemi_idx, sorted_labels, hemi_conn, valid_roi
 
