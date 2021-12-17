@@ -16,8 +16,9 @@ from statsmodels.stats.multitest import multipletests
 import pandas as pd
 
 basepath = 'X:/path/myfolder/'
+Nclusters = 3
 
-def roiconn(hemi, version, conntype):
+def roiconn(hemi, conntype):
 	datapath = basepath + 'data/'
 	sublist = listdir(datapath)
 	Nsub = len(sublist)
@@ -25,52 +26,42 @@ def roiconn(hemi, version, conntype):
 	conn = ['SC', 'FC']
 	connname = conn[conntype-1]
 
-	ncluster = 3
-	if version == 5:
-		if hemi == 'L':
-			ncluster = 4
-		else:
-			ncluster = 5
-	meanconn = np.zeros((Nsub, ncluster, Nroi))
+	meanconn = np.zeros((Nsub, Nclusters, Nroi))
 	i = 0
 	for sidx, sname in enumerate(sublist):
-		if version == 3:
-			subpath = join(basepath, 'data', sname, 'cluster%d/relabel-SC4/' %version)
-		else:
-			subpath = join(basepath, 'data', sname, 'cluster%d/relabel-SC/' %version)
+		subpath = join(basepath, 'data', sname, 'cluster/relabel-SC/')
 
-		if exists(subpath + 'mean%s.%s.K%d.npy' %(connname, hemi, ncluster)):
-			subconn = np.load(subpath + 'mean%s.%s.K%d.npy' %(connname, hemi, ncluster))
+		if exists(subpath + 'mean%s.%s.K%d.npy' %(connname, hemi, Nclusters)):
+			subconn = np.load(subpath + 'mean%s.%s.K%d.npy' %(connname, hemi, Nclusters))
 			meanconn[i, :, :] = subconn
 			i = i + 1
 
 	for roi in range(Nroi):
 		roiconn = meanconn[:,:,roi]
-		np.save(basepath, 'stat/cluster%d/roi%s/' %(version, connname) + '%s-ROI%d.npy' %(hemi, roi+1), roiconn)
+		np.save(f'{basepath}/stat/cluster/roi{connname}/{hemi}-ROI{roi+1}.npy', roiconn)
 
 
-def ttest(hemi, version, conntype):
-	ncluster = 3
+def ttest(hemi, conntype):
 	Nroi = 41
-	inpath = join(basepath, 'stat/cluster%d/' %version)
+	inpath = join(basepath, 'stat/cluster')
 	conn = ['SC', 'FC']
 	connname = conn[conntype-1]
 
-	t = np.zeros((Nroi, ncluster))
-	p = np.zeros((Nroi, ncluster))
+	t = np.zeros((Nroi, Nclusters))
+	p = np.zeros((Nroi, Nclusters))
 	corrected = np.zeros_like(p)
 	for roi in range(Nroi):
-		conn = np.load(inpath + 'roi%s/%s-ROI%d.npy' %(connname, hemi, roi+1))
+		conn = np.load(f'{inpath}/roi{connname}/{hemi}-ROI{roi+1}.npy')
 		t[roi,0], p[roi,0] = ttest_ind(conn[:,0], conn[:,1])
 		t[roi,1], p[roi,1] = ttest_ind(conn[:,1], conn[:,2])
 		t[roi,2], p[roi,2] = ttest_ind(conn[:,2], conn[:,0])
 
-	for i in range(ncluster):
+	for i in range(Nclusters):
 		_, p_corr, _, _ = multipletests(p[:, i], 0.05, 'fdr_bh')
 		corrected[:, i] = p_corr
 
-	np.save(inpath + '%s-%s-t_statistics.npy' %(hemi, connname), t)
-	np.save(inpath + '%s-%s-t_pvalues.npy' %(hemi, connname), corrected)
+	np.save(f'{inpath}/{hemi}-{connname}-t_statistics.npy', t)
+	np.save(f'{inpath}/{hemi}-{connname}-t_pvalues.npy', corrected)
 	
 	df = pd.DataFrame(np.hstack((t, p, corrected)))
 	filepath = inpath + '%s_stat_results.xlsx' %hemi
