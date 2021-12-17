@@ -1,4 +1,11 @@
-####
+#############################################################################################
+## To access difference in myelin density & cortical thickness among PAC subregions
+##
+## compute_mean_values : To compute average myelin density & cortical thickness values
+## main_compute_mean   : To obtain vectors of average values of whole participants
+## ttest               : To perform two-sample t-test
+## main_ttest          : To compute group difference in myelin density & cortical thickness
+#############################################################################################
 
 
 import os
