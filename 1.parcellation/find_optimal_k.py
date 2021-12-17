@@ -18,9 +18,9 @@ from sklearn.metrics import silhouette_score
 from scipy.spatial.distance import cdist
 from kneed import KneeLocator
 
-basepath = 'X:/path/myfolder/'
-datapath = basepath + 'data/'
-mainpath = basepath + 'SC_parc/'
+basepath = 'X:/path/myfolder'
+datapath = basepath + '/data'
+mainpath = basepath + '/SC_parc'
 
 def find_elbow(coeff):
 	x = np.arange(2,11)
@@ -100,17 +100,17 @@ def main_elbow(a, b):
 		for sidx, sname in enumerate(sublist):
 			print('%dth sub - %s - clustering\n' %(sidx+1, sname))
 			distortions[sidx] = kmeans_elbow(sname, hemi)
-		np.save(mainpath + '%s-distortion.npy' %hemi, distortions)
+		np.save(f'{mainpath}/{hemi}-distortion.npy', distortions)
 
 
 def save_figure(hemi):
 	x = np.arange(2,11)
-	elbow = np.load(mainpath + '%s-inertia.npy' %hemi)
+	elbow = np.load(f'{mainpath}/{hemi}-inertia.npy')
 	avg = np.mean(elbow, axis=0)
 	kn = KneeLocator(x, avg, curve='convex', direction='decreasing')
 	plt.plot(x, avg)
 	plt.xlabel('k')
 	plt.ylabel('Inertia')
 	plt.vlines(kn.knee, plt.ylim()[0], plt.ylim()[1], linestyles='dashed')
-	plt.savefig(mainpath + 'figure/%s-inertia.png' %hemi)
+	plt.savefig(f'{mainpath}/figure/{hemi}-inertia.png')
 	plt.close()
