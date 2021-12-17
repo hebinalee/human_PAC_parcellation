@@ -97,9 +97,9 @@ def main_elbow(a, b):
 
 	for hemi in ['L', 'R']:
 		distortions = np.zeros((len(sublist), 9))
-		for sidx, sname in enumerate(sublist):
-			print('%dth sub - %s - clustering\n' %(sidx+1, sname))
-			distortions[sidx] = kmeans_elbow(sname, hemi)
+		for sidx, subID in enumerate(sublist):
+			print('%dth sub - %s - clustering\n' %(sidx+1, subID))
+			distortions[sidx] = kmeans_elbow(subID, hemi)
 		np.save(f'{mainpath}/{hemi}-distortion.npy', distortions)
 
 
