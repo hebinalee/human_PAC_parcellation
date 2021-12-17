@@ -19,13 +19,15 @@ import numpy as np
 import nibabel as nib
 import zipfile
 
-basepath = 'X:/path/myfolder/'
-sys.path.append(basepath + 'congrads-master')
+basepath = 'X:/path/myfolder'
+datapath = basepath + '/data'
+
+sys.path.append(basepath + '/congrads-master')
 import conmap_surf2, conmap_sim
 
-def set_subpath(subID): return basepath + 'data/' + subID
-def set_inpath(subID): return basepath + 'data/' + subID + '/seed_surf'
-def set_outpath(subID): return basepath + 'data/' + subID + '/gradient'
+def set_subpath(subID): return f'{datapath}/{subID}'
+def set_inpath(subID): return f'{datapath}/{subID}/seed_surf'
+def set_outpath(subID): return f'{datapath}/{subID}/gradient'
 
 from brainspace.gradient.kernels import compute_affinity
 def calculate_sim(subID, hemi):
@@ -39,7 +41,6 @@ def calculate_sim(subID, hemi):
 
 
 def gradient(hemi):
-	datapath = store7 + 'hblee/MPI/data'
 	sublist = sorted(listdir(datapath))
 	
 	S = []
@@ -61,7 +62,6 @@ def gradient(hemi):
 
 
 def group_average(hemi):
-	datapath = store7 + 'hblee/MPI/data'
 	sublist = sorted(listdir(datapath))
 	
 	for sidx, subID in enumerate(sublist):
@@ -85,7 +85,6 @@ def align_gradient(hemi):
 	from brainspace.gradient.alignment import ProcrustesAlignment
 	PA = ProcrustesAlignment(n_iter=10)
 
-	datapath = store7 + 'hblee/MPI/data'
 	sublist = sorted(listdir(datapath))
 	
 	X = []
@@ -130,7 +129,6 @@ def save_img(subID, hemi, nmaps=3):
 
 
 def main(a, b, hemi='L', startname=None):
-	datapath = store7 + 'hblee/MPI/data'
 	sublist = sorted(listdir(datapath))
 	if startname:
 		a = sublist.index(startname)
