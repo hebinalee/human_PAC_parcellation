@@ -15,14 +15,15 @@ import numpy as np
 import nibabel as nib
 import matplotlib.pyplot as plt
 
-basepath = 'X:/path/myfolder/'
+basepath = 'X:/path/myfolder'
+datapath = basepath + '/data'
 
 # Cluster results - native(acpc) volume to standard volume
-def regist_clust(subID, ncluster, version):
-	subpath = join(basepath, 'hblee/data', subID)
+def regist_clust(subID, ncluster):
+	subpath = join(datapath, subID)
 	standard = '/usr/local/fsl/data/standard/MNI152_T1_2mm_brain.nii.gz'
 	warpfile = join(subpath, 'T1w/acpc_dc2standard.nii.gz')
-	path_clust = join(subpath, 'cluster%d' %version)
+	path_clust = join(subpath, 'cluster')
 
 	for hemi in ['L', 'R']:
 		infile = path_clust + '/%s.clust.K%d.nii.gz' %(hemi, ncluster)
@@ -47,10 +48,10 @@ def pearson_conn(x, y):
 	return cov / np.dot(s_x[:, np.newaxis], s_y[np.newaxis, :])
 
 
-def meanFC(subID, version):
+def meanFC(subID):
 	ncluster = 3
-	subpath = join(basepath, 'data', subID)
-	path_clust = join(subpath, 'cluster%d/relabel-SC/' %version)
+	subpath = join(datapath, subID)
+	path_clust = join(subpath, 'cluster/relabel-SC/')
 
 	fmri_file = join(subpath, 'rsfMRI/rfMRI_REST1_LR.nii.gz')
 	if not exists(fmri_file):
@@ -72,16 +73,8 @@ def meanFC(subID, version):
 			i += 1
 
 	for hemi in ['L', 'R']:
-		if version == 5:
-			if hemi == 'L':
-				ncluster = 4
-			else:
-				ncluster = 5
 		meanFC = np.zeros((ncluster, 41))
-		if version == 3:
-			path_clust = join(subpath, 'cluster%d/relabel-SC4/' %version)
-		else:
-			path_clust = join(subpath, 'cluster%d/relabel-SC/' %version)
+		path_clust = join(subpath, 'cluster/relabel-SC/')
 		clust_file = path_clust + '/%s.clust.K%d.relabel.MNI2mm.nii.gz' %(hemi, ncluster)
 		clust = nib.load(clust_file).get_fdata()
 
@@ -104,8 +97,7 @@ def meanFC(subID, version):
 
 def initial_roi(subID, hemi):
 	ncluster = 3
-	subpath = join(basepath, 'data', subID)
-	# roi_file = join(subpath, 'tracto/roi_MNI2mm.nii.gz')
+	subpath = join(datapath, subID)
 	roi_file = join(subpath, 'tracto/dil.fs_default.nodes.fixSGM.nii.gz')
 	roi = nib.load(roi_file).get_fdata()
 	# Create seed ROI
@@ -133,8 +125,7 @@ def initial_roi(subID, hemi):
 	return hg, stg, insula, threeroi
 
 
-def main(a, b, version, startname=None):
-	datapath = basepath + 'data/'
+def main(a, b, startname=None):
 	sublist = listdir(datapath)
 	if startname:
 		a = sublist.index(startname)
@@ -145,9 +136,9 @@ def main(a, b, version, startname=None):
 		sublist = sublist[a:b]  # 162026 ~ 793465
 	
 	ncluster = 3
-	for sidx, sname in enumerate(sublist):
-		print('%dth sub - %s - FC analysis on cluster\n' %(sidx+1, sname))
-		meanFC(sname, version)
+	for sidx, subID in enumerate(sublist):
+		print('%dth sub - %s - FC analysis on cluster\n' %(sidx+1, subID))
+		meanFC(subID)
 
 
 if __name__ == "__main__":
@@ -155,7 +146,6 @@ if __name__ == "__main__":
 	parser = argparse.ArgumentParser(description="gradient")
 	parser.add_argument(dest="startpoint",type=int,help="Start point of subject for data processing")
 	parser.add_argument(dest="endpoint",type=int,help="End point of subject for data processing")
-	parser.add_argument(dest="version",type=int,help="Trial")
 	parser.add_argument("-s",dest="startname",help="The name of the subject to start",required=False)
 	args=parser.parse_args()
 	main(args.startpoint, args.endpoint, args.verison, args.startname)
