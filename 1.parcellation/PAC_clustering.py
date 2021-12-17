@@ -17,6 +17,7 @@ from sklearn.cluster import KMeans
 
 basepath = 'X:/path/myfolder'
 datapath = basepath + '/data'
+Nclusters = 3
 
 ## seed ROI index:
 ## Left : 29(STG), 33(HG), 34(IS)
@@ -34,7 +35,7 @@ def map_t1w(labels, indices, ref_anat, outpath):
 	nib.save(img, outpath)
 
 
-def clustering(subID, hemi, n_clusters):
+def clustering(subID, hemi, Nclusters):
 	subpath = join(datapath, subID)
 	path_conn = join(subpath, 'tracto')
 	path_clust = join(subpath, 'cluster')
@@ -72,16 +73,11 @@ def clustering(subID, hemi, n_clusters):
 	hemi_conn = valid_conn[hemi_set==hemi][:,valid_roi]
 	hemi_idx = valid_idx[hemi_set==hemi]
 
-	clf = KMeans(n_clusters=n_clusters, random_state=0).fit(hemi_conn)
+	clf = KMeans(n_clusters = Nclusters, random_state = 0).fit(hemi_conn)
 	orig_labels = clf.predict(hemi_conn)
-	
-	# Manually labels (A --> P)
-	#clust_centers = np.zeros((n_clusters, 3))
-	#for label in range(n_clusters):
-	#	clust_centers[label] = np.mean(hemi_idx[orig_labels == label], axis=0)
 
-	clust = np.zeros(n_clusters)
-	for label in range(n_clusters):
+	clust = np.zeros(Nclusters)
+	for label in range(Nclusters):
 		clust[label]  = np.mean(hemi_conn[orig_labels == label, -8])
 
 	sorted_labels = np.zeros_like(orig_labels)
@@ -92,9 +88,8 @@ def clustering(subID, hemi, n_clusters):
 			sorted_labels + 1,
 			tuple(hemi_idx.T),
 			ref_anat,
-			f'{path_clust}/{hemi}.clust.K{n_clusters}.nii.gz'
+			f'{path_clust}/{hemi}.clust.K{Nclusters}.nii.gz'
 			)
-	#return hemi_idx, sorted_labels, hemi_conn, valid_roi
 
 
 def main(a, b, startname=None):
@@ -108,11 +103,10 @@ def main(a, b, startname=None):
 	else:
 		sublist = sublist[a:b]  # 162026 ~ 793465
 
-	n_clusters = 3
-	for sidx, sname in enumerate(sublist):
-		print('%dth sub - %s - clustering\n' %(sidx+1, sname))
-		clustering(sname, 'L', 4)
-		clustering(sname, 'R', 5)
+	for sidx, subID in enumerate(sublist):
+		print('%dth sub - %s - clustering\n' %(sidx+1, subID))
+		clustering(subID, 'L', Nclusters)
+		clustering(subID, 'R', Nclusters)
 
 
 if __name__ == "__main__":
