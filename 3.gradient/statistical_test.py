@@ -21,13 +21,15 @@ import nibabel as nib
 from scipy.stats import ttest_ind
 from statsmodels.stats.multitest import multipletests
 
-basepath = 'X:/path/myfolder/'
-sys.path.append(basepath + 'congrads-master')
+basepath = 'X:/path/myfolder'
+datapath = basepath + '/data'
+
+sys.path.append(basepath + '/congrads-master')
 import conmap_surf2, conmap_sim
 
-def set_subpath(subID): return basepath + 'data/' + subID
-def set_inpath(subID): return basepath + 'data/' + subID
-def set_outpath(subID): return basepath + 'data/' + subID + '/gradient'
+def set_subpath(subID): return f'{datapath}/{subID}'
+def set_inpath(subID): return f'{datapath}/{subID}'
+def set_outpath(subID): return f'{datapath}/{subID}/gradient'
 
 
 def dilate_seed(subID, hemi):
@@ -54,7 +56,7 @@ def dilate_seed(subID, hemi):
 	os.system('applywarp --rel --interp=nn -i %s -r %s -w %s -o %s' %(output_dir, standard, warpfile, output_MNI_dir))
 	
 	# 3) Map onto surface space
-	surf_dir = join(subpath, f'fsaverage_LR32k/{subID}.{hemi}.midthickness.32k_fs_LR.surf.gii')
+	surf_dir = f'{subpath}/fsaverage_LR32k/{subID}.{hemi}.midthickness.32k_fs_LR.surf.gii'
 	output_surf_dir = f'{outpath}/cluster_K3.{hemi}.32k_fs_LR.func.gii'
 	os.system(f'wb_command -volume-to-surface-mapping {output_MNI_dir} {surf_dir} {output_surf_dir} -enclosing')
 
@@ -138,7 +140,6 @@ def calculate_mean_grad(subID, hemi, nClusters=3):
 
 
 def save_mean_grad():
-	datapath = store7 + 'hblee/MPI/data'
 	sublist = sorted(listdir(datapath))
 
 	for hemi in ['L', 'R']:
@@ -173,7 +174,6 @@ def ttest(hemi):
 
 
 def main(a, b, hemi='L', startname=None):
-	datapath = store7 + 'hblee/MPI/data'
 	sublist = sorted(listdir(datapath))
 	if startname:
 		a = sublist.index(startname)
