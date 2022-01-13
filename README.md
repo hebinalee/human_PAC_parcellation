@@ -1,6 +1,6 @@
 ## human_PAC_parcellation ##
 :large_blue_diamond: This is code for the paper **"Individual-level parcellation of the human auditory cortex and comparison of their functional connectivity pattern"** (Submitted)<br />
-:large_blue_diamond: **The paper link:** will be updated<br />
+:large_blue_diamond: **Paper link:** will be updated<br />
 :large_blue_diamond: If you use this code, please cite the article.<br /><br />
 
 ✔ This study is divided into following 3 steps:<br />
