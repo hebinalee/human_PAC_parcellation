@@ -17,11 +17,7 @@ import shutil
 import numpy as np
 import nibabel as nib
 import matplotlib.pyplot as plt
-
-if os.name == 'nt':
-	store7 = 'V:/'
-else:
-	store7 = '/store7/'
+store7 = '/store7/'
 
 Nclusters = 3
 
@@ -60,7 +56,7 @@ To perform two-sample t-test for each pair of data (FDR correction is applied)
 
 Input:  /store7/hblee/MPI/stat/roiFC/{hemi}-ROI{i}.npy
 Output: 1) /store7/hblee/MPI/stat/{hemi}-FC-t_statistics.npy
-		2) /store7/hblee/MPI/stat/{hemi}-FC-t_pvalues.npy
+	2) /store7/hblee/MPI/stat/{hemi}-FC-t_pvalues.npy
 '''
 from scipy.stats import ttest_ind
 from statsmodels.stats.multitest import multipletests
