@@ -3,9 +3,10 @@
 :large_blue_diamond: **Paper link:** will be updated<br />
 :large_blue_diamond: If you use this code, please cite the article.<br /><br />
 
-✔ This study is divided into following 3 steps:<br />
+✔ This study is divided into following 4 steps:<br />
 　　　**1)** Structural connectome-based PAC parcellation<br />
 　　　**2)** Characterization of subregions in terms of functional connectome pattern<br />
-　　　**3)** Identification of functional hierarchy of subregions via gradient analysis<br /><br />
+　　　**3)** Identification of functional hierarchy of subregions via gradient analysis<br />
+　　　**4)** Anatomical analysis with myelin density & cortical thickness<br /><br />
 
 :pushpin: **copyrightⓒ 2021 All rights reserved by Hyebin Lee and Kyoungseob Byeon**
