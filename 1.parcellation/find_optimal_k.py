@@ -40,6 +40,7 @@ def kmeans_sse(subID, hemi):
 	subpath = join(store4, 'hblee/4.MPI/4.clustFC/data/', subID)
 	path_conn = join(subpath, 'tracto')
 	path_clust = join(subpath, 'cluster4')
+	outpath = f'{store7}hblee/MPI/data1/{subID}/cluster4/optimal_k'
 	if not os.path.exists(path_clust):
 		os.makedirs(path_clust)
 
@@ -83,7 +84,7 @@ def kmeans_sse(subID, hemi):
 			curr_center = centroids[orig_labels[i]]
 			curr_sse += np.sum((hemi_conn[i,:] - curr_center)**2)
 		sse[ncluster-2] = curr_sse
-	np.save(path_clust + '/%s-sse.npy' %hemi, sse)
+	np.save(f'{outpath}/{hemi}-sse.npy', sse)
 	return sse
 
 
@@ -120,5 +121,5 @@ def main_sse(a=0, b=0):
 		plt.xlabel('k')
 		plt.ylabel('SSE')
 		plt.vlines(kn.knee, plt.ylim()[0], plt.ylim()[1], linestyles='dashed')
-		plt.savefig(store4 + 'hblee/4.MPI/4.clustFC/figure/%s-sse.png' %hemi)
+		plt.savefig(f'{store4}hblee/4.MPI/4.clustFC/figure/{hemi}-sse.png')
 		plt.close()
