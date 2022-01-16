@@ -5,9 +5,13 @@
 ## gradient       : To perform gradient analysis in individual-level
 ## group_average  : To compute the group-averaged gradient
 ## align_gradient : To align individual-level gradient onto the group-averaged gradient space
-## save_img       : To save gifti image file including gradient informations
 ###############################################################################################
-
+'''
+[Order of function implementation]
+1) gradient
+2) group_average
+3) align_gradient
+'''
 import os
 from os import listdir
 from os.path import join, exists, isfile, isdir
@@ -29,6 +33,16 @@ def set_subpath(subID): return f'{datapath}/{subID}'
 def set_inpath(subID): return f'{datapath}/{subID}/seed_surf'
 def set_outpath(subID): return f'{datapath}/{subID}/gradient'
 
+
+
+'''
+[calculate_sim]
+To compute cosine simularity matrix from correlation matrix
+
+Input:  1) store7/hblee/MPI/data/{subID}/4.gradient_new/merged_seed.{hemi}.32k_fs_LR.correlation1.mat (N_seed_voxels X N_target_voxels)
+	2) store7/hblee/MPI/data/{subID}/4.gradient_new/merged_seed.{hemi}.32k_fs_LR.correlation2.mat (N_seed_voxels X N_target_voxels)
+Output: S (N_seed_voxels X N_seed_voxels)
+'''
 from brainspace.gradient.kernels import compute_affinity
 def calculate_sim(subID, hemi):
 	inpath = set_inpath(subID)
@@ -40,6 +54,15 @@ def calculate_sim(subID, hemi):
 	return S
 
 
+'''
+[gradient]
+To perform gradient analysis for all subjects
+- calculate_sim
+
+Input:  S - List of simularity maps for all subjects
+Output: /store7/hblee/MPI/data/{subID}/6.gradient_cosine/merged_seed.{hemi}.32k_fs_LR.gradient.mat
+* All I/Os are on the fsaverage_LR32k surface space
+'''
 def gradient(hemi):
 	sublist = sorted(listdir(datapath))
 	
@@ -61,6 +84,14 @@ def gradient(hemi):
 		sio.savemat(f'{outpath}/merged_seed.{hemi}.32k_fs_LR.gradient.mat', mdict={'gradient':gradients[sidx], 'lambda':lambdas[sidx]})
 
 
+'''
+[group_average]
+To compute group averaged gradient data by performing PCA on stacks of individual data
+
+Input:  /store7/hblee/MPI/data/{subID}/6.gradient_cosine/merged_seed.{hemi}.32k_fs_LR.gradient.mat
+Output: /store7/hblee/MPI/1.gradient/merged_seed.{hemi}.32k_fs_LR.mean_gradient6.mat
+* All I/Os are on the fsaverage_LR32k surface space
+'''
 def group_average(hemi):
 	sublist = sorted(listdir(datapath))
 	
@@ -81,8 +112,17 @@ def group_average(hemi):
 	sio.savemat(f'{store7}hblee/MPI/1.gradient/merged_seed.{hemi}.32k_fs_LR.mean_gradient6.mat', mdict={'grad_ref':X_ref})
 
 
+'''
+[align_gradient]
+To align individual gradient results using procrustes alignment algorithm
+
+Input:  1) /store7/hblee/MPI/data/{subID}/6.gradient_cosine/merged_seed.{hemi}.32k_fs_LR.gradient.mat
+	2) /store7/hblee/MPI/1.gradient/merged_seed.{hemi}.32k_fs_LR.mean_gradient6.mat
+Output: /store7/hblee/MPI/data/{subID}/6.gradient_cosine/merged_seed.{hemi}.32k_fs_LR.gradient.aligned.mat
+* All I/Os are on the fsaverage_LR32k surface space
+'''
+from brainspace.gradient.alignment import ProcrustesAlignment
 def align_gradient(hemi):
-	from brainspace.gradient.alignment import ProcrustesAlignment
 	PA = ProcrustesAlignment(n_iter=10)
 
 	sublist = sorted(listdir(datapath))
@@ -102,32 +142,10 @@ def align_gradient(hemi):
 		sio.savemat(f'{outpath}/merged_seed.{hemi}.32k_fs_LR.gradient.aligned.mat', mdict={'gradient':aligned[sidx]})
 
 
-def save_img(subID, hemi, nmaps=3):
-	subpath = set_subpath(subID)
-	inpath = set_inpath(subID)
-	outpath = set_outpath(subID)
-
-	merged_seed_img = nib.load(f'{store7}hblee/MPI/1.gradient/merged_seed.{hemi}.32k_fs_LR.func.gii')
-	merged_seed = merged_seed_img.darrays[0].data
-	mergedSeedIndices = np.where(merged_seed==1)
-
-	seed_img = nib.load(f'{inpath}/seed_{hemi}.32k_fs_LR.func.gii')
-	seed = seed_img.darrays[0].data
-	maskIndices = np.where(seed==0)
-
-	ref_img = nib.load(f'{inpath}/merged_seed.{hemi}.32k_fs_LR.cmaps.aligned.crop.func.gii')
-	gradient = sio.loadmat(f'{outpath}/merged_seed.{hemi}.32k_fs_LR.gradient.aligned.mat')['gradient']
-
-	for i in range(nmaps):
-		dat = np.zeros_like(merged_seed)
-		dat[mergedSeedIndices] = gradient[:,i]
-		dat[maskIndices] = 0
-		ref_img.darrays[i].data = dat
-	
-	outfile = f'{outpath}/merged_seed.{hemi}.32k_fs_LR.cmaps.aligned.crop.func.gii'
-	nib.save(ref_img, outfile)
-
-
+'''
+[main]
+Main function to perform analysis
+'''
 def main(a, b, hemi='L', startname=None):
 	sublist = sorted(listdir(datapath))
 	if startname:
@@ -140,11 +158,6 @@ def main(a, b, hemi='L', startname=None):
 	# 1. gradient(hemi)
 	# 2. group_average(hemi)
 	# 3. align_gradient(hemi)
-	for sidx, subID in enumerate(sublist):
-		print('%dth sub - %s - gradient anaylsis %s\n' %(sidx+1, subID, hemi))
-		# 4. save_img(subID, hemi)
-		#for hemi in ['L', 'R']:
-		#	crop_seed(subID, hemi)
 
 
 if __name__ == "__main__":
