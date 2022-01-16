@@ -10,10 +10,8 @@ from os import listdir
 from os.path import isfile, join, exists
 import numpy as np
 import matplotlib.pyplot as plt
-if os.name == 'nt':
-	store4 = 'X:/'
-else:
-	store4 = '/store4/'
+store4 = '/store4/'
+store7 = '/store7/'
 import nibabel as nib
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
