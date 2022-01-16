@@ -14,11 +14,9 @@ from os.path import isfile, join, exists
 import glob
 import shutil
 import numpy as np
-if os.name == 'nt':
-	store7 = 'V:/'
-	from mayavi import mlab
-else:
-	store7 = '/store7/'
+from mayavi import mlab
+store4 = '/store4/'
+store7 = '/store7/'
 import nibabel as nib
 import matplotlib.pyplot as plt
 
