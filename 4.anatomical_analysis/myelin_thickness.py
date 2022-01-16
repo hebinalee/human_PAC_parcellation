@@ -1,3 +1,13 @@
+#####################################################################################
+## To assess difference in myelin density & cortical thickness among PAC subregions
+#####################################################################################
+'''
+[Orders of function implementation]
+1) copy_anatomical_data
+2) main_compute_mean
+3) main_ttest
+'''
+
 import os
 from os import listdir
 from os.path import join, exists, isfile, isdir
@@ -12,22 +22,13 @@ import pandas as pd
 import matplotlib.pyplot as plt
 
 if os.name == 'nt':
-	store4 = 'X:/'
 	store6 = 'U:/'
 	store7 = 'V:/'
 else:
-	store4 = '/store4/'
 	store6 = '/store6/'
 	store7 = '/store7/'
 
 Nclusters = 3
-'''
-[Orders of function]
-1) copy_anatomical_data
-2) main_compute_mean
-3) main_ttest
-'''
-
 
 
 '''
@@ -35,7 +36,7 @@ Nclusters = 3
 To copy myelin density & cortical thickness file of individual from the Database
 
 Output: 1) /store7/hblee/MPI/data/{subID}/fsaverage_LR32k/{subID}.{hemi}.MyelinMap_BC.32k_fs_LR.func.gii
-		2) /store7/hblee/MPI/data/{subID}/fsaverage_LR32k/{subID}.{hemi}.thickness.32k_fs_LR.shape.gii
+	2) /store7/hblee/MPI/data/{subID}/fsaverage_LR32k/{subID}.{hemi}.thickness.32k_fs_LR.shape.gii
 '''
 import zipfile
 def copy_individual_data(subID):
@@ -78,10 +79,10 @@ def copy_anatomical_data():
 To compute averaged myelin density & cortical thickness of PAC subregions for each individual
 
 Input:  1) /store7/hblee/MPI/data/{subID}/6.gradient_cosine/cluster_K3.{hemi}.32k_fs_LR.func.gii
-		2) /store7/hblee/MPI/data/{subID}/fsaverage_LR32k/{subID}.{hemi}.MyelinMap_BC.32k_fs_LR.func.gii
-		3) /store7/hblee/MPI/data/{subID}/fsaverage_LR32k/{subID}.{hemi}.thickness.32k_fs_LR.shape.gii
+	2) /store7/hblee/MPI/data/{subID}/fsaverage_LR32k/{subID}.{hemi}.MyelinMap_BC.32k_fs_LR.func.gii
+	3) /store7/hblee/MPI/data/{subID}/fsaverage_LR32k/{subID}.{hemi}.thickness.32k_fs_LR.shape.gii
 Output: 1) mean_myelin - vector of length 3 (0 if Error occured)
-		2) mean_thickness - vector of length 3 (0 if Error occured)
+	2) mean_thickness - vector of length 3 (0 if Error occured)
 '''
 def compute_mean_values(subID, hemi):
 	# 1) Get cluster label
@@ -183,9 +184,9 @@ def main_ttest(hemi):
 	mean_myelin = mean_values['mean_myelin']
 	mean_thickness = mean_values['mean_thickness']
 	
-	# Myelin density
+	# 1) Myelin density
 	print('t-test: Myelin density')
 	t, p = ttest(mean_myelin)
-	# Cortical thickness
+	# 2) Cortical thickness
 	print('t-test: Cortical thickness')
 	t, p = ttest(mean_thickness)
