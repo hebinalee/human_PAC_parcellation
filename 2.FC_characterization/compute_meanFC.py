@@ -1,12 +1,10 @@
-#################################################################################################
+#####################################
 ## FUNCTIONAL CONNECTIVITY ANALYSIS
-##
-## regist_clust : To register cluster labels onto the standard volume space
-## pearson_conn : To compute the Pearson's correlation coefficient from two time series signals
-## meanFC       : To compute cluster X target ROI F matrix in individual-level
-## initial_roi  : To return the indices of the initial ROI
-#################################################################################################
-
+#####################################
+'''
+[Order of function implementation]
+1) compute_meanFC
+'''
 import os
 from os import listdir
 from os.path import join, exists, isfile, isdir
@@ -15,28 +13,24 @@ import numpy as np
 import nibabel as nib
 import matplotlib.pyplot as plt
 
-basepath = 'X:/path/myfolder'
-datapath = basepath + '/data'
+if os.name == 'nt':
+	store7 = 'V:/'
+else:
+	store7 = '/storeV/'
 
-# Cluster results - native(acpc) volume to standard volume
-def regist_clust(subID, ncluster):
-	subpath = join(datapath, subID)
-	standard = '/usr/local/fsl/data/standard/MNI152_T1_2mm_brain.nii.gz'
-	warpfile = join(subpath, 'T1w/acpc_dc2standard.nii.gz')
-	path_clust = join(subpath, 'cluster')
-
-	for hemi in ['L', 'R']:
-		infile = path_clust + '/%s.clust.K%d.nii.gz' %(hemi, ncluster)
-		outfile = path_clust + '/%s.clust.K%d.MNI2mm.nii.gz' %(hemi, ncluster)
-		os.system('applywarp --rel --interp=nn -i %s -r %s -w %s -o %s' %(infile, standard, warpfile, outfile))
+Nclusters = 3
 
 
+
+'''
+[pearson_conn]
+To compute connectivity matrix from two data arrays using pearson's correlation
+
+Input:  1) x (N X T)
+		2) y (M X T)
+Output: correlation matrix (N X M)
+'''
 def pearson_conn(x, y):
-	"""Correlate each n with each m.
-	x : np.array (N X T)
-	y : np.array (M X T)
-	Returns : np.array (N X M)
-	"""
 	mu_x = x.mean(1)
 	mu_y = y.mean(1)
 	n = x.shape[1]
@@ -48,11 +42,24 @@ def pearson_conn(x, y):
 	return cov / np.dot(s_x[:, np.newaxis], s_y[np.newaxis, :])
 
 
-def meanFC(subID):
-	ncluster = 3
-	subpath = join(datapath, subID)
-	path_clust = join(subpath, 'cluster/relabel-SC/')
+'''
+[compute_meanFC]
+To compute averaged FC values for each clusters
+- pearson_conn
 
+Input:  1) /store7/hblee/MPI/data1/{subID}/rsfMRI/rfMRI_REST1_LR.nii.gz
+		2) /store7/hblee/MPI/data1/{subID}/tracto/roi_MNI2mm.nii.gz
+		3) /store7/hblee/MPI/data1/{subID}/cluster4/relabel-SC/{hemi}.clust.K3.relabel.MNI2mm.nii.gz
+* All inputs are on the standard volume space (MNI2mm)
+Output: /store7/hblee/MPI/data/{subID}/cluster/meanFC.{hemi}.K3.npy (3 X 82)
+* Do not use this /store7/hblee/MPI/data1/{subID}/cluster4/relabel-SC/meanFC.{hemi}.K3.npy (3 X 41)
+'''
+def compute_meanFC(subID):
+	subpath = join(store4, 'hblee/MPI/data1', subID)
+	path_clust = join(subpath, 'cluster4/relabel-SC/')
+	outpath = f'{store7}hblee/MPI/data/{subID}/cluster'
+
+	# 1) Load fMRI and ROI data
 	fmri_file = join(subpath, 'rsfMRI/rfMRI_REST1_LR.nii.gz')
 	if not exists(fmri_file):
 		fmri_file = join(subpath, 'rsfMRI/rfMRI_REST1_RL.nii.gz')
@@ -65,7 +72,7 @@ def meanFC(subID):
 	Ntime = fmri.shape[-1]
 	roiBOLD = np.zeros((Nroi-2, Ntime))
 	
-	# ROI-wise averaged BOLD signal
+	# 2) Compute ROI-wise averaged BOLD signal
 	i = 0
 	for ridx in range(Nroi):
 		if not (ridx == 32 or ridx == 81):
@@ -73,59 +80,90 @@ def meanFC(subID):
 			i += 1
 
 	for hemi in ['L', 'R']:
-		meanFC = np.zeros((ncluster, 41))
-		path_clust = join(subpath, 'cluster/relabel-SC/')
-		clust_file = path_clust + '/%s.clust.K%d.relabel.MNI2mm.nii.gz' %(hemi, ncluster)
+		meanFC = np.zeros((Nclusters, 41))
+		path_clust = join(subpath, 'cluster4/relabel-SC/')
+		clust_file = f'{path_clust}/{hemi}.clust.K{Nclusters}.relabel.MNI2mm.nii.gz'
 		clust = nib.load(clust_file).get_fdata()
 
-		if hemi == 'L':
-			target_roi = np.arange(41)
-		else:
-			target_roi = np.arange(41, 82)
-
-		for label in range(1, ncluster+1):
-			idx = np.swapaxes(np.array(np.where(clust == label)), 0, -1)
+		for label in range(Nclusters):
+			idx = np.swapaxes(np.array(np.where(clust == label+1)), 0, -1)
 			if len(idx) != 0:
 				voxelBOLD = np.array([fmri[i[0], i[1], i[2], :] for i in idx])
-				corr_r = pearson_conn(voxelBOLD, roiBOLD[target_roi, :])
+				corr_r = pearson_conn(voxelBOLD, roiBOLD)
 				conn = np.arctanh(((corr_r+1)/2)**6)	# soft thresholding -> r-to-z transform
-				#np.save(path_clust + '/FC.K%d.%s.cluster%d.npy' %(ncluster, hemi, label), conn)
-				meanFC[label-1, :] = np.mean(conn, axis=0)
+				meanFC[label, :] = np.mean(conn, axis=0)
 
-		np.save(path_clust + '/meanFC.%s.K%d.npy' %(hemi, ncluster), meanFC)
+		np.save(f'{outpath}/meanFC.{hemi}.K{Nclusters}.npy', meanFC)
 
+'''
+[roiconn]
+To save matrix of meanFC values for each ROI (N_valid_subj X N_clusters)
 
-def initial_roi(subID, hemi):
-	ncluster = 3
-	subpath = join(datapath, subID)
-	roi_file = join(subpath, 'tracto/dil.fs_default.nodes.fixSGM.nii.gz')
-	roi = nib.load(roi_file).get_fdata()
-	# Create seed ROI
-	seed_idx = np.transpose(np.load(join(subpath, 'tracto/fs_default.seed_idx.npy')))
-	div_x = np.argmax(np.diff(seed_idx[:,0])) + 1
-	n_vox = len(seed_idx)
-	hemi_set = np.array(div_x*['R'] + (n_vox-div_x)*['L'])
-	for hemi in ['L', 'R']:
-		hemi_idx = seed_idx[hemi_set==hemi]
-		seed = np.zeros_like(roi)
-		for i in range(len(hemi_idx)):
-			seed[tuple(hemi_idx[i])] = 1
-		if hemi == 'L':
-			stg = (roi == 29).astype(int)
-			insula = (roi == 34).astype(int)
-		else:
-			stg = (roi == 78).astype(int)
-			insula = (roi == 83).astype(int)
-		buf = np.logical_or(stg, insula)
-		hg = np.logical_and(seed, ~buf)
-		stg = stg*1
-		hg = hg*2
-		insula = insula*3
-		threeroi = stg + hg + insula
-	return hg, stg, insula, threeroi
+Input:  /store7/hblee/MPI/data1/{subID}/cluster4/relabel-SC/meanFC.{hemi}.K3.npy (3 X 82)
+Output: /store7/hblee/MPI/stat/roiFC/{hemi}-ROI{i}.npy
+'''
+def roiconn(hemi):
+	datapath = store7 + 'hblee/MPI/data/'
+	sublist = sorted(listdir(datapath))
+	Nsub = len(sublist)
+	Nroi = 82
+
+	meanconn = np.zeros((Nsub, Nclusters, Nroi))
+	i = 0
+	for sidx, subID in enumerate(sublist):
+		subpath = f'{store7}hblee/MPI/data/{subID}/cluster'
+
+		if exists(f'{subpath}/meanFC.{hemi}.K{Nclusters}.npy'):
+			subconn = np.load(f'{subpath}/meanFC.{hemi}.K{Nclusters}.npy')
+			meanconn[i, :, :] = subconn
+			i = i + 1
+
+	for roi in range(Nroi):
+		roiconn = meanconn[:,:,roi]
+		np.save(f'{store7}hblee/MPI/stat/roiFC/{hemi}-ROI{roi+1}.npy', roiconn)
 
 
+'''
+[ttest]
+To perform two-sample t-test for each pair of data (FDR correction is applied)
+
+Input:  /store7/hblee/MPI/stat/roiFC/{hemi}-ROI{i}.npy
+Output: 1) /store7/hblee/MPI/stat/{hemi}-FC-t_statistics.npy
+		2) /store7/hblee/MPI/stat/{hemi}-FC-t_pvalues.npy
+'''
+from scipy.stats import ttest_ind
+from statsmodels.stats.multitest import multipletests
+def ttest(hemi):
+	Nroi = 82
+	inpath = f'{store7}hblee/MPI/stat'
+
+	t = np.zeros((Nroi, Nclusters))
+	p = np.zeros((Nroi, Nclusters))
+	corrected = np.zeros_like(p)
+	for roi in range(Nroi):
+		conn = np.load(f'{inpath}/roiFC/{hemi}-ROI{roi+1}.npy')
+		t[roi,0], p[roi,0] = ttest_ind(conn[:,0], conn[:,1])
+		t[roi,1], p[roi,1] = ttest_ind(conn[:,1], conn[:,2])
+		t[roi,2], p[roi,2] = ttest_ind(conn[:,2], conn[:,0])
+
+	for i in range(Nclusters):
+		_, p_corr, _, _ = multipletests(p[:, i], 0.05, 'fdr_bh')
+		corrected[:, i] = p_corr
+
+	np.save(f'{inpath}/{hemi}-FC-t_statistics.npy', t)
+	np.save(f'{inpath}/{hemi}-FC-t_pvalues.npy', corrected)
+	
+	df = pd.DataFrame(np.hstack((t, p, corrected)))
+	filepath = if'{inpath}/{hemi}_stat_results.xlsx'
+	df.to_excel(filepath, index=False)
+
+
+'''
+[main]
+Main function to perform analysis
+'''
 def main(a, b, startname=None):
+	datapath = store4 + 'hblee/4.MPI/4.clustFC/data/'
 	sublist = listdir(datapath)
 	if startname:
 		a = sublist.index(startname)
@@ -135,15 +173,16 @@ def main(a, b, startname=None):
 	else:
 		sublist = sublist[a:b]  # 162026 ~ 793465
 	
-	ncluster = 3
+	# 2. roiconn(hemi)
+	# 3. ttest(hemi)
 	for sidx, subID in enumerate(sublist):
 		print('%dth sub - %s - FC analysis on cluster\n' %(sidx+1, subID))
-		meanFC(subID)
+		#1. compute_meanFC(subID)
 
 
 if __name__ == "__main__":
 	import argparse
-	parser = argparse.ArgumentParser(description="gradient")
+	parser = argparse.ArgumentParser(description="functional_connectivity")
 	parser.add_argument(dest="startpoint",type=int,help="Start point of subject for data processing")
 	parser.add_argument(dest="endpoint",type=int,help="End point of subject for data processing")
 	parser.add_argument("-s",dest="startname",help="The name of the subject to start",required=False)
