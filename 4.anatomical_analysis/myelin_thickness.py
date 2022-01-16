@@ -20,13 +20,8 @@ import scipy.io as sio
 
 import pandas as pd
 import matplotlib.pyplot as plt
-
-if os.name == 'nt':
-	store6 = 'U:/'
-	store7 = 'V:/'
-else:
-	store6 = '/store6/'
-	store7 = '/store7/'
+store6 = '/store6/'
+store7 = '/store7/'
 
 Nclusters = 3
 
