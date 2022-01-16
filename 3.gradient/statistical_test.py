@@ -8,7 +8,13 @@
 ## save_mean_grad       : To save averaged gradient values
 ## ttest                : To perform two-sample t-test
 ##################################################################################################
-
+'''
+[Order of function implementation]
+1) dilate_seed
+2) save_norm_img
+3) save_mean_grad
+4) ttest
+'''
 import os
 from os import listdir
 from os.path import join, exists, isfile, isdir
@@ -32,6 +38,19 @@ def set_subpath(subID): return f'{datapath}/{subID}'
 def set_inpath(subID): return f'{datapath}/{subID}'
 def set_outpath(subID): return f'{datapath}/{subID}/gradient'
 
+
+'''
+[dilate_seed]
+To assign label to all seed voxels
+and register labeled seed area onto fsaverage_LR32k surface space (via standard volume space)
+- manual_interpolation
+
+Input:  1) /store7/hblee/MPI/data1/{subID}/cluster4/relabel-SC/{hemi}.clust.K3.relabel.nii.gz
+	2) /store7/hblee/MPI/data/{subID}/1.gradient_DWI/seed_{hemi}.nii.gz
+Output: 1) /store7/hblee/MPI/data/{subID}/6.gradient_cosine/{hemi}.clust.K3.dilated.nii.gz
+	2) /store7/hblee/MPI/data/{subID}/6.gradient_cosine/{hemi}.clust.K3.dilated.MNI2mm.nii.gz
+	3) /store7/hblee/MPI/data/{subID}/6.gradient_cosine/cluster_K3.{hemi}.32k_fs_LR.func.gii
+'''
 
 def dilate_seed(subID, hemi):
 	subpath = set_subpath(subID)
@@ -62,6 +81,16 @@ def dilate_seed(subID, hemi):
 	os.system(f'wb_command -volume-to-surface-mapping {output_MNI_dir} {surf_dir} {output_surf_dir} -enclosing')
 
 
+'''
+[manual_interpolation]
+To assign label to all seed voxels
+(originally, labels are assigned only for valid voxels)
+
+Input:  1) input_data - Label data for valid seed voxels
+	2) target - Seed ROI data
+Output: input_data - Label data for whole seed 
+* All I/Os are on the native volume space
+'''
 from collections import Counter
 def manual_interpolation(input_data, target):
 	changed = 0
@@ -93,6 +122,16 @@ def manual_interpolation(input_data, target):
 	return input_data
 
 
+'''
+[save_norm_img]
+To normalize gradient data and crop individual seed area (normalize -> crop)
+
+Input:  1) /store7/hblee/MPI/1.gradient/merged_seed.{hemi}.32k_fs_LR.func.gii
+	2) /store7/hblee/MPI/data/{subID}/4.gradient_new/seed_{hemi}.32k_fs_LR.func.gii
+	3) /store7/hblee/MPI/data/{subID}/6.gradient_cosine/merged_seed.{hemi}.32k_fs_LR.gradient.aligned.mat
+Output: /store7/hblee/MPI/data/{subID}/6.gradient_cosine/merged_seed.{hemi}.32k_fs_LR.cmaps.aligned.norm.crop.func.gii
+* All I/Os are on the fsaverage_LR32k surface space
+'''
 def save_norm_img(subID, hemi, nmaps=3):
 	subpath = set_subpath(subID)
 	outpath = set_outpath(subID)
@@ -118,6 +157,15 @@ def save_norm_img(subID, hemi, nmaps=3):
 	nib.save(ref_img, outfile)
 
 
+'''
+[calculate_mean_grad]
+To calculate mean gradient values for 3 PAC subregions
+
+Input:  1) /store7/hblee/MPI/data/{subID}/6.gradient_cosine/cluster_K3.{hemi}.32k_fs_LR.func.gii
+	2) /store7/hblee/MPI/data/{subID}/6.gradient_cosine/merged_seed.{hemi}.32k_fs_LR.cmaps.aligned.norm.crop.func.gii
+Output: mean_gradient - Vector with length 3 (If failed, return None)
+* All I/Os are on the fsaverage_LR32k surface space
+'''
 def calculate_mean_grad(subID, hemi):
 	subpath = set_subpath(subID)
 	outpath = set_outpath(subID)
@@ -140,6 +188,14 @@ def calculate_mean_grad(subID, hemi):
 	return mean_gradient
 
 
+'''
+[save_mean_grad]
+To compute mean gradient values for 3 PAC subregions for all individials and return the matrix
+- calculate_mean_grad
+
+Input:
+Output: /store7/hblee/MPI/1.gradient/mean_gradient_{hemi}.mat (N_valid_subj X N_clusters)
+'''
 def save_mean_grad():
 	sublist = sorted(listdir(datapath))
 
@@ -155,6 +211,13 @@ def save_mean_grad():
 	return
 
 
+'''
+[ttest]
+To perform two-sample t-test for each pair of PAC subregions (FDR correction is applied)
+
+Input:  /store7/hblee/MPI/1.gradient/mean_gradient_{hemi}.mat
+Output: t, p, corrected_p (print on terminal)
+'''
 def ttest(hemi):
 	mean_grad = sio.loadmat(f'{store7}hblee/MPI/1.gradient/mean_gradient_{hemi}.mat')['mean_grad']
 	Nsub = mean_grad.shape[0]
@@ -173,6 +236,10 @@ def ttest(hemi):
 	print('p_corr: ', p_corr)
 
 
+'''
+[main]
+Main function to perform analysis
+'''
 def main(a, b, hemi='L', startname=None):
 	sublist = sorted(listdir(datapath))
 	if startname:
