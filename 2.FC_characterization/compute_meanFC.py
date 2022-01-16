@@ -12,11 +12,7 @@ import shutil
 import numpy as np
 import nibabel as nib
 import matplotlib.pyplot as plt
-
-if os.name == 'nt':
-	store7 = 'V:/'
-else:
-	store7 = '/storeV/'
+store7 = '/store7/'
 
 Nclusters = 3
 
