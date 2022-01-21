@@ -263,7 +263,7 @@ def main(a, b, startname=None):
 		sublist = sublist[a:b]  # 162026 ~ 793465
 
 	for sidx, subID in enumerate(sublist):
-		print('%dth sub - %s - clustering\n' %(sidx+1, subID))
+		print(f'{sidx+1}th sub - {subID} - clustering\n')
 		clustering(subID, 'L', Nclusters)
 		clustering(subID, 'R', Nclusters)
 
