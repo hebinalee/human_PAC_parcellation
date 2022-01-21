@@ -15,10 +15,13 @@ import glob
 import shutil
 import numpy as np
 from mayavi import mlab
-store4 = '/store4/'
-store7 = '/store7/'
 import nibabel as nib
 import matplotlib.pyplot as plt
+
+basepath = 'X:/path/myfolder'
+datapath = basepath + '/data'
+
+def set_subpath(subID): return f'{datapath}/{subID}'
 
 Nclusters = 3
 
@@ -55,9 +58,9 @@ Output: /store7/hblee/MPI/data1/{subID}/cluster4/{hemi}.clust.K3.nii.gz
 # clustering4 : remove more regions with zero-std, include STG and IS
 from sklearn.cluster import KMeans
 def clustering(subID, hemi):
-	subpath = join(store7, 'hblee/MPI/data1/', subID)
+	subpath = set_inpath(subID)
 	path_conn = join(subpath, 'tracto')
-	path_clust = join(subpath, 'cluster4')
+	path_clust = join(subpath, 'cluster')
 	if not os.path.exists(path_clust):
 		os.makedirs(path_clust)
 
@@ -71,7 +74,6 @@ def clustering(subID, hemi):
 	# 2) Consider voxels with connectivity value larger than 100
 	valid_seed = np.where(conn_mat.sum(axis=1) >= 100)
 	valid_conn = conn_mat[valid_seed]
-	#valid_conn = np.where(conn_mat[valid_seed] > 0, 1,0) + 0.1*np.log10(10*conn_mat[valid_seed]+1)
 	valid_conn = valid_conn / valid_conn.sum(axis=1).reshape(-1,1).astype(np.float64)
 	valid_idx = np.transpose(seed_idx)[valid_seed]
 
@@ -105,9 +107,8 @@ def clustering(subID, hemi):
 			orig_labels + 1,
 			tuple(hemi_idx.T),
 			ref_anat,
-			'%s/%s.clust.K%d.nii.gz' %(path_clust, hemi, Nclusters)
+			f'{path_clust}/{hemi}.clust.K{.nii.gz' %(path_clust, hemi, Nclusters)
 			)
-	#return hemi_idx, sorted_labels, hemi_conn, valid_roi
 
 
 '''
@@ -120,13 +121,13 @@ Input:  1) /store7/hblee/MPI/data1/{subID}/tracto/valid.conn.{hemi}.npy
 Output: /store7/hblee/MPI/data1/{subID}/cluster4/meanSC.{hemi}.K3.npy
 '''
 def compute_meanSC(subID, hemi):
-	subpath = f'{store7}hblee/MPI/data1/{subID}'
-	outpath = f'{store4}hblee/4.MPI/4.clustFC/figure/mean_sc4/rawlabel'
+	subpath = set_inpath(subID)
+	outpath = f'{basepath}/clustFC/figure/mean_sc/rawlabel'
 	path_conn = join(subpath, 'tracto')
 	seed_conn = np.load(f'{path_conn}/valid.conn.{hemi}.npy')
 	seed_idx = np.load(f'{path_conn}/valid.idx.{hemi}.npy')
 
-	path_clust = join(subpath, 'cluster4/')
+	path_clust = join(subpath, 'cluster')
 	clust_file = f'{path_clust}/{hemi}.clust.K{Nclusters}.nii.gz'
 	clust = nib.load(clust_file).get_fdata()
 	clust_label = np.array([clust[i[0], i[1], i[2]] for i in tuple(seed_idx)])
@@ -150,7 +151,7 @@ Input:  /store7/hblee/MPI/data1/{subID}/cluster4/meanSC.{hemi}.K3.npy
 Output: relabel
 '''
 def relabel(subID, hemi):
-	subpath = f'{store4}hblee/4.MPI/4.clustFC/data/{subID}/cluster4'
+	subpath = set_inpath(subID) + '/cluster'
 
 	# 1) Get index for STG & IS
 	if hemi == 'L':
@@ -192,8 +193,8 @@ Output: 1) /store7/hblee/MPI/data1/{subID}/cluster4/relabel-SC/{hemi}.clust.K3.r
 		2) /store7/hblee/MPI/data1/{subID}/cluster4/relabel-SC/meanSC.{hemi}.K3.npy
 '''
 def relabel_clust(subID, hemi):
-	subpath = join(store4, 'hblee/MPI/data', subID)
-	path_clust = join(subpath, 'cluster4')
+	subpath = set_inpath(subID)
+	path_clust = join(subpath, 'cluster')
 	outpath = join(path_clust, 'relabel-SC')
 
 	if hemi == 'L':
@@ -236,10 +237,10 @@ Input:  /store7/hblee/MPI/data1/{subID}/cluster4/relabel-SC/{hemi}.clust.K3.rela
 Output: /store7/hblee/MPI/data1/{subID}/cluster4/relabel-SC/{hemi}.clust.K3.relabel.MNI2mm.nii.gz
 '''
 def regist_clust(subID):
-	subpath = join(store4, 'hblee/4.MPI/4.clustFC/data', subID)
+	subpath = set_inpath(subID)
 	standard = '/usr/local/fsl/data/standard/MNI152_T1_2mm_brain.nii.gz'
 	warpfile = join(subpath, 'T1w/acpc_dc2standard.nii.gz')
-	path_clust = join(subpath, 'cluster4')
+	path_clust = join(subpath, 'cluster')
 
 	for hemi in ['L', 'R']:
 		infile = path_clust + '/relabel-SC/%s.clust.K%d.relabel.nii.gz' %(hemi, Nclusters)
@@ -252,7 +253,6 @@ def regist_clust(subID):
 Main function to perform analysis
 '''
 def main(a, b, startname=None):
-	datapath = store4 + 'hblee/4.MPI/4.clustFC/data/'
 	sublist = sorted(listdir(datapath))
 	if startname:
 		a = sublist.index(startname)
