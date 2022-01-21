@@ -108,7 +108,7 @@ def main(a, b, startname=None):
 		sublist = sublist[a:b]  # 162026 ~ 793465
 	
 	for sidx, subID in enumerate(sublist):
-		print('%dth sub - %s - FC analysis on cluster\n' %(sidx+1, subID))
+		print('f'{sidx+1}th sub - {subID} - FC analysis on cluster\n')
 		#1. compute_meanFC(subID)
 
 
