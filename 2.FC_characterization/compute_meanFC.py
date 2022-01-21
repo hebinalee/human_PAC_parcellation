@@ -12,7 +12,11 @@ import shutil
 import numpy as np
 import nibabel as nib
 import matplotlib.pyplot as plt
-store7 = '/store7/'
+
+basepath = 'X:/path/myfolder'
+datapath = basepath + '/data'
+
+def set_subpath(subID): return f'{datapath}/{subID}'
 
 Nclusters = 3
 
@@ -23,7 +27,7 @@ Nclusters = 3
 To compute connectivity matrix from two data arrays using pearson's correlation
 
 Input:  1) x (N X T)
-		2) y (M X T)
+	2) y (M X T)
 Output: correlation matrix (N X M)
 '''
 def pearson_conn(x, y):
@@ -43,17 +47,15 @@ def pearson_conn(x, y):
 To compute averaged FC values for each clusters
 - pearson_conn
 
-Input:  1) /store7/hblee/MPI/data1/{subID}/rsfMRI/rfMRI_REST1_LR.nii.gz
-		2) /store7/hblee/MPI/data1/{subID}/tracto/roi_MNI2mm.nii.gz
-		3) /store7/hblee/MPI/data1/{subID}/cluster4/relabel-SC/{hemi}.clust.K3.relabel.MNI2mm.nii.gz
+Input:  1) {subpath}/rsfMRI/rfMRI_REST1_LR.nii.gz
+	2) {subpath}/tracto/roi_MNI2mm.nii.gz
+	3) {subpath}/cluster/relabel-SC/{hemi}.clust.K3.relabel.MNI2mm.nii.gz
 * All inputs are on the standard volume space (MNI2mm)
-Output: /store7/hblee/MPI/data/{subID}/cluster/meanFC.{hemi}.K3.npy (3 X 82)
-* Do not use this /store7/hblee/MPI/data1/{subID}/cluster4/relabel-SC/meanFC.{hemi}.K3.npy (3 X 41)
+Output: {subpath}/cluster/meanFC.{hemi}.K3.npy (3 X 82)
 '''
 def compute_meanFC(subID):
-	subpath = join(store4, 'hblee/MPI/data1', subID)
-	path_clust = join(subpath, 'cluster4/relabel-SC/')
-	outpath = f'{store7}hblee/MPI/data/{subID}/cluster'
+	subpath = set_inpath(subID)
+	path_clust = join(subpath, 'cluster/relabel/')
 
 	# 1) Load fMRI and ROI data
 	fmri_file = join(subpath, 'rsfMRI/rfMRI_REST1_LR.nii.gz')
@@ -77,7 +79,6 @@ def compute_meanFC(subID):
 
 	for hemi in ['L', 'R']:
 		meanFC = np.zeros((Nclusters, 41))
-		path_clust = join(subpath, 'cluster4/relabel-SC/')
 		clust_file = f'{path_clust}/{hemi}.clust.K{Nclusters}.relabel.MNI2mm.nii.gz'
 		clust = nib.load(clust_file).get_fdata()
 
@@ -89,7 +90,7 @@ def compute_meanFC(subID):
 				conn = np.arctanh(((corr_r+1)/2)**6)	# soft thresholding -> r-to-z transform
 				meanFC[label, :] = np.mean(conn, axis=0)
 
-		np.save(f'{outpath}/meanFC.{hemi}.K{Nclusters}.npy', meanFC)
+		np.save(f'{path_clust}/meanFC.{hemi}.K{Nclusters}.npy', meanFC)
 
 
 '''
@@ -97,7 +98,6 @@ def compute_meanFC(subID):
 Main function to perform analysis
 '''
 def main(a, b, startname=None):
-	datapath = store4 + 'hblee/4.MPI/4.clustFC/data/'
 	sublist = listdir(datapath)
 	if startname:
 		a = sublist.index(startname)
