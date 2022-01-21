@@ -43,8 +43,8 @@ def roiconn(hemi):
 	for sidx, subID in enumerate(sublist):
 		subpath = set_subpath(subID) + '/cluster'
 
-		if exists(f'{subpath}/meanFC.{hemi}.K{Nclusters}.npy'):
-			subconn = np.load(f'{subpath}/meanFC.{hemi}.K{Nclusters}.npy')
+		if exists(f'{subpath}/relabel/meanFC.{hemi}.K{Nclusters}.npy'):
+			subconn = np.load(f'{subpath}/relabel/meanFC.{hemi}.K{Nclusters}.npy')
 			meanconn[i, :, :] = subconn
 			i = i + 1
 
