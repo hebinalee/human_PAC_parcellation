@@ -17,7 +17,11 @@ import shutil
 import numpy as np
 import nibabel as nib
 import matplotlib.pyplot as plt
-store7 = '/store7/'
+
+basepath = 'X:/path/myfolder'
+datapath = basepath + '/data'
+
+def set_subpath(subID): return f'{datapath}/{subID}'
 
 Nclusters = 3
 
@@ -26,11 +30,10 @@ Nclusters = 3
 [roiconn]
 To save matrix of meanFC values for each ROI (N_valid_subj X N_clusters)
 
-Input:  /store7/hblee/MPI/data1/{subID}/cluster4/relabel-SC/meanFC.{hemi}.K3.npy (3 X 82)
-Output: /store7/hblee/MPI/stat/roiFC/{hemi}-ROI{i}.npy
+Input:  {subpath}/cluster/relabel/meanFC.{hemi}.K3.npy (3 X 82)
+Output: {basepath}/stat/roiFC/{hemi}-ROI{i}.npy
 '''
 def roiconn(hemi):
-	datapath = store7 + 'hblee/MPI/data/'
 	sublist = sorted(listdir(datapath))
 	Nsub = len(sublist)
 	Nroi = 82
@@ -38,7 +41,7 @@ def roiconn(hemi):
 	meanconn = np.zeros((Nsub, Nclusters, Nroi))
 	i = 0
 	for sidx, subID in enumerate(sublist):
-		subpath = f'{store7}hblee/MPI/data/{subID}/cluster'
+		subpath = set_subpath(subID) + '/cluster'
 
 		if exists(f'{subpath}/meanFC.{hemi}.K{Nclusters}.npy'):
 			subconn = np.load(f'{subpath}/meanFC.{hemi}.K{Nclusters}.npy')
@@ -47,22 +50,22 @@ def roiconn(hemi):
 
 	for roi in range(Nroi):
 		roiconn = meanconn[:,:,roi]
-		np.save(f'{store7}hblee/MPI/stat/roiFC/{hemi}-ROI{roi+1}.npy', roiconn)
+		np.save(f'{basepath}/stat/roiFC/{hemi}-ROI{roi+1}.npy', roiconn)
 
 
 '''
 [ttest]
 To perform two-sample t-test for each pair of data (FDR correction is applied)
 
-Input:  /store7/hblee/MPI/stat/roiFC/{hemi}-ROI{i}.npy
-Output: 1) /store7/hblee/MPI/stat/{hemi}-FC-t_statistics.npy
-	2) /store7/hblee/MPI/stat/{hemi}-FC-t_pvalues.npy
+Input:  {basepath}/stat/roiFC/{hemi}-ROI{i}.npy
+Output: 1) {basepath}/stat/{hemi}-FC-t_statistics.npy
+	2) {basepath}/stat/{hemi}-FC-t_pvalues.npy
 '''
 from scipy.stats import ttest_ind
 from statsmodels.stats.multitest import multipletests
 def ttest(hemi):
 	Nroi = 82
-	inpath = f'{store7}hblee/MPI/stat'
+	inpath = f'{basepath}/stat'
 
 	t = np.zeros((Nroi, Nclusters))
 	p = np.zeros((Nroi, Nclusters))
@@ -90,7 +93,6 @@ def ttest(hemi):
 Main function to perform analysis
 '''
 def main(a, b, startname=None):
-	datapath = store4 + 'hblee/4.MPI/4.clustFC/data/'
 	sublist = listdir(datapath)
 	if startname:
 		a = sublist.index(startname)
