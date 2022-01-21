@@ -39,8 +39,8 @@ def set_outpath(subID): return f'{datapath}/{subID}/gradient'
 [calculate_sim]
 To compute cosine simularity matrix from correlation matrix
 
-Input:  1) store7/hblee/MPI/data/{subID}/4.gradient_new/merged_seed.{hemi}.32k_fs_LR.correlation1.mat (N_seed_voxels X N_target_voxels)
-	2) store7/hblee/MPI/data/{subID}/4.gradient_new/merged_seed.{hemi}.32k_fs_LR.correlation2.mat (N_seed_voxels X N_target_voxels)
+Input:  1) {subpath}/gradient/merged_seed.{hemi}.32k_fs_LR.correlation1.mat (N_seed_voxels X N_target_voxels)
+	2) {subpath}/gradient/merged_seed.{hemi}.32k_fs_LR.correlation2.mat (N_seed_voxels X N_target_voxels)
 Output: S (N_seed_voxels X N_seed_voxels)
 '''
 from brainspace.gradient.kernels import compute_affinity
@@ -60,7 +60,7 @@ To perform gradient analysis for all subjects
 - calculate_sim
 
 Input:  S - List of simularity maps for all subjects
-Output: /store7/hblee/MPI/data/{subID}/6.gradient_cosine/merged_seed.{hemi}.32k_fs_LR.gradient.mat
+Output: {subpath}/gradient/merged_seed.{hemi}.32k_fs_LR.gradient.mat
 * All I/Os are on the fsaverage_LR32k surface space
 '''
 def gradient(hemi):
@@ -88,8 +88,8 @@ def gradient(hemi):
 [group_average]
 To compute group averaged gradient data by performing PCA on stacks of individual data
 
-Input:  /store7/hblee/MPI/data/{subID}/6.gradient_cosine/merged_seed.{hemi}.32k_fs_LR.gradient.mat
-Output: /store7/hblee/MPI/1.gradient/merged_seed.{hemi}.32k_fs_LR.mean_gradient6.mat
+Input:  {subpath}/gradient/merged_seed.{hemi}.32k_fs_LR.gradient.mat
+Output: {basepath}/gradient/merged_seed.{hemi}.32k_fs_LR.mean_gradient.mat
 * All I/Os are on the fsaverage_LR32k surface space
 '''
 def group_average(hemi):
@@ -109,16 +109,16 @@ def group_average(hemi):
 	PM.fit(X)
 	X_ref = PM.maps_
 	print('Shape of X after PCA: ', X_ref.shape)
-	sio.savemat(f'{store7}hblee/MPI/1.gradient/merged_seed.{hemi}.32k_fs_LR.mean_gradient6.mat', mdict={'grad_ref':X_ref})
+	sio.savemat(f'{basepath}/gradient/merged_seed.{hemi}.32k_fs_LR.mean_gradient.mat', mdict={'grad_ref':X_ref})
 
 
 '''
 [align_gradient]
 To align individual gradient results using procrustes alignment algorithm
 
-Input:  1) /store7/hblee/MPI/data/{subID}/6.gradient_cosine/merged_seed.{hemi}.32k_fs_LR.gradient.mat
-	2) /store7/hblee/MPI/1.gradient/merged_seed.{hemi}.32k_fs_LR.mean_gradient6.mat
-Output: /store7/hblee/MPI/data/{subID}/6.gradient_cosine/merged_seed.{hemi}.32k_fs_LR.gradient.aligned.mat
+Input:  1) {subpath}/gradient/merged_seed.{hemi}.32k_fs_LR.gradient.mat
+	2) {basepath}/gradient/merged_seed.{hemi}.32k_fs_LR.mean_gradient.mat
+Output: {subpath}/gradient/merged_seed.{hemi}.32k_fs_LR.gradient.aligned.mat
 * All I/Os are on the fsaverage_LR32k surface space
 '''
 from brainspace.gradient.alignment import ProcrustesAlignment
@@ -133,7 +133,7 @@ def align_gradient(hemi):
 		x = sio.loadmat(f'{outpath}/merged_seed.{hemi}.32k_fs_LR.gradient.mat')['gradient']
 		X.append(x)
 
-	ref = sio.loadmat(f'{store7}hblee/MPI/1.gradient/merged_seed.{hemi}.32k_fs_LR.mean_gradient6.mat')['grad_ref']
+	ref = sio.loadmat(f'{basepath}/gradient/merged_seed.{hemi}.32k_fs_LR.mean_gradient.mat')['grad_ref']
 	PA.fit(X, reference=ref)
 	aligned = PA.aligned_
 
