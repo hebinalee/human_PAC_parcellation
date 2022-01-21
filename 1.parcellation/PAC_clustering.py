@@ -189,13 +189,13 @@ To align label of clustering results based on SC with STG ans IS and save NIFTI 
 
 Input:  1) {subpath}/cluster/{hemi}.clust.K3.nii.gz
 	2) {subpath}/cluster/meanSC.{hemi}.K3.npy
-Output: 1) {subpath}/cluster/relabel-SC/{hemi}.clust.K3.relabel.nii.gz
-	2) {subpath}/cluster/relabel-SC/meanSC.{hemi}.K3.npy
+Output: 1) {subpath}/cluster/relabel/{hemi}.clust.K3.relabel.nii.gz
+	2) {subpath}/cluster/relabel/meanSC.{hemi}.K3.npy
 '''
 def relabel_clust(subID, hemi):
 	subpath = set_inpath(subID)
 	path_clust = join(subpath, 'cluster')
-	outpath = join(path_clust, 'relabel-SC')
+	outpath = join(path_clust, 'relabel')
 
 	if hemi == 'L':
 		refID = '174841'
@@ -233,8 +233,8 @@ def relabel_clust(subID, hemi):
 [regist_clust]
 To register label data: native volume space -> standard volume space
 
-Input:  {subpath}/cluster/relabel-SC/{hemi}.clust.K3.relabel.nii.gz
-Output: {subpath}/cluster/relabel-SC/{hemi}.clust.K3.relabel.MNI2mm.nii.gz
+Input:  {subpath}/cluster/relabel/{hemi}.clust.K3.relabel.nii.gz
+Output: {subpath}/cluster/relabel/{hemi}.clust.K3.relabel.MNI2mm.nii.gz
 '''
 def regist_clust(subID):
 	subpath = set_inpath(subID)
@@ -243,8 +243,8 @@ def regist_clust(subID):
 	path_clust = join(subpath, 'cluster')
 
 	for hemi in ['L', 'R']:
-		infile = path_clust + '/relabel-SC/%s.clust.K%d.relabel.nii.gz' %(hemi, Nclusters)
-		outfile = path_clust + '/relabel-SC/%s.clust.K%d.relabel.MNI2mm.nii.gz' %(hemi, Nclusters)
+		infile = path_clust + '/relabel/%s.clust.K%d.relabel.nii.gz' %(hemi, Nclusters)
+		outfile = path_clust + '/relabel/%s.clust.K%d.relabel.MNI2mm.nii.gz' %(hemi, Nclusters)
 		os.system('applywarp --rel --interp=nn -i %s -r %s -w %s -o %s' %(infile, standard, warpfile, outfile))
 
 
