@@ -10,8 +10,6 @@ from os import listdir
 from os.path import isfile, join, exists
 import numpy as np
 import matplotlib.pyplot as plt
-store4 = '/store4/'
-store7 = '/store7/'
 import nibabel as nib
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_score
@@ -23,24 +21,26 @@ from kneed import KneeLocator
 - The elbow was defined as the point where the derivatives changes the most
 '''
 
+basepath = 'X:/path/myfolder'
+datapath = basepath + '/data'
+
+def set_subpath(subID): return f'{datapath}/{subID}'
+
 
 
 '''
 [kmeans_sse]
 To perform K-means clustering when 1<K<=10 and compute SSE 
 
-Input:  1) /store4/hblee/4.MPI/4.clustFC/data/{subID}/tracto/fs_default.conn.matrix.npy
-		2) /store4/hblee/4.MPI/4.clustFC/data/{subID}/tracto/fs_default.seed_idx.npy
-		matched to
-		1) /store7/hblee/MPI/data1/{subID}/tracto/fs_default.conn.matrix.npy
-		2) /store7/hblee/MPI/data1/{subID}/tracto/fs_default.seed_idx.npy
-Output: /store7/hblee/MPI/data1/{subID}/cluster4/{hemi}-sse.npy
+Input:  1) {subpath}/tracto/fs_default.conn.matrix.npy
+	2) {subpath}/tracto/fs_default.seed_idx.npy
+Output: {subpath}/cluster/{hemi}-sse.npy
 '''
 def kmeans_sse(subID, hemi):
-	subpath = join(store4, 'hblee/4.MPI/4.clustFC/data/', subID)
+	subpath = set_inpath(subID)
 	path_conn = join(subpath, 'tracto')
-	path_clust = join(subpath, 'cluster4')
-	outpath = f'{store7}hblee/MPI/data1/{subID}/cluster4/optimal_k'
+	path_clust = join(subpath, 'cluster')
+	outpath = f'{path_clust}/optimal_k'
 	if not os.path.exists(path_clust):
 		os.makedirs(path_clust)
 
@@ -93,10 +93,9 @@ def kmeans_sse(subID, hemi):
 To perform K-means clustering for whole subjects, compute averaged SSE, and plot it 
 - kmeans_sse
 
-Output: /store4/hblee/4.MPI/4.clustFC/{hemi}-sse.npy
+Output: {basepath}/clustFC/{hemi}-sse.npy
 '''
 def main_sse(a=0, b=0):
-	datapath = store4 + 'hblee/4.MPI/4.clustFC/data/'
 	sublist = sorted(listdir(datapath))
 	if type(a) == str:
 		a = sublist.index(a)
@@ -111,7 +110,7 @@ def main_sse(a=0, b=0):
 		for sidx, sname in enumerate(sublist):
 			print('%dth sub - %s - clustering\n' %(sidx+1, sname))
 			sse[sidx] = kmeans_sse(sname, hemi)
-		np.save(store4 + 'hblee/4.MPI/4.clustFC/%s-sse.npy' %hemi, sse)
+		np.save(f'{basepath}/clustFC/{hemi}-sse.npy', sse)
 
 		# Plot SSE and find elbow
 		x = np.arange(2,11)
@@ -121,5 +120,5 @@ def main_sse(a=0, b=0):
 		plt.xlabel('k')
 		plt.ylabel('SSE')
 		plt.vlines(kn.knee, plt.ylim()[0], plt.ylim()[1], linestyles='dashed')
-		plt.savefig(f'{store4}hblee/4.MPI/4.clustFC/figure/{hemi}-sse.png')
+		plt.savefig(f'{basepath}/clustFC/figure/{hemi}-sse.png')
 		plt.close()
