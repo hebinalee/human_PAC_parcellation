@@ -49,7 +49,7 @@ To compute averaged FC values for each clusters
 
 Input:  1) {subpath}/rsfMRI/rfMRI_REST1_LR.nii.gz
 	2) {subpath}/tracto/roi_MNI2mm.nii.gz
-	3) {subpath}/cluster/relabel-SC/{hemi}.clust.K3.relabel.MNI2mm.nii.gz
+	3) {subpath}/cluster/relabel/{hemi}.clust.K3.relabel.MNI2mm.nii.gz
 * All inputs are on the standard volume space (MNI2mm)
 Output: {subpath}/cluster/meanFC.{hemi}.K3.npy (3 X 82)
 '''
