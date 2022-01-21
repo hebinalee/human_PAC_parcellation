@@ -107,9 +107,9 @@ def main_sse(a=0, b=0):
 
 	for hemi in ['L', 'R']:
 		sse = np.zeros((len(sublist), 9))
-		for sidx, sname in enumerate(sublist):
-			print('%dth sub - %s - clustering\n' %(sidx+1, sname))
-			sse[sidx] = kmeans_sse(sname, hemi)
+		for sidx, subID in enumerate(sublist):
+			print(f'{sidx+1}th sub - {subID} - clustering\n')
+			sse[sidx] = kmeans_sse(subID, hemi)
 		np.save(f'{basepath}/clustFC/{hemi}-sse.npy', sse)
 
 		# Plot SSE and find elbow
