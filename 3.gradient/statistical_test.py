@@ -253,7 +253,7 @@ def main(a, b, hemi='L', startname=None):
 	# 3. save_mean_grad()
 	# 4. ttest(hemi)
 	for sidx, subID in enumerate(sublist):
-		print('%dth sub - %s - post-hoc anaylsis %s\n' %(sidx+1, subID, hemi))
+		print('f'{sidx+1}th sub - {subID} - post-hoc anaylsis {hemi}\n')
 		# 1. dilate_seed(subID, hemi)
 		# 2. save_norm_img(subID, hemi)
 
