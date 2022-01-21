@@ -20,80 +20,41 @@ import scipy.io as sio
 
 import pandas as pd
 import matplotlib.pyplot as plt
-store6 = '/store6/'
-store7 = '/store7/'
+
+basepath = 'X:/path/myfolder'
+datapath = basepath + '/data'
+
+def set_subpath(subID): return f'{datapath}/{subID}'
 
 Nclusters = 3
 
-
-'''
-[copy_individual_data]
-To copy myelin density & cortical thickness file of individual from the Database
-
-Output: 1) /store7/hblee/MPI/data/{subID}/fsaverage_LR32k/{subID}.{hemi}.MyelinMap_BC.32k_fs_LR.func.gii
-	2) /store7/hblee/MPI/data/{subID}/fsaverage_LR32k/{subID}.{hemi}.thickness.32k_fs_LR.shape.gii
-'''
-import zipfile
-def copy_individual_data(subID):
-	subpath = store7 + 'hblee/MPI/data/' + subID
-	outpath = subpath + '/fsaverage_LR32k'
-
-	basepath = store6 + 'Public/Database/HCP_S1200'
-	zippath = f'{basepath}/{subID}_3T_Structural_preproc.zip'
-	zip_file = zipfile.ZipFile(zippath)
-	targets = [f'{subID}/MNINonLinear/fsaverage_LR32k/{subID}.L.MyelinMap_BC.32k_fs_LR.func.gii',
-	f'{subID}/MNINonLinear/fsaverage_LR32k/{subID}.L.thickness.32k_fs_LR.shape.gii',
-	f'{subID}/MNINonLinear/fsaverage_LR32k/{subID}.R.MyelinMap_BC.32k_fs_LR.func.gii',
-	f'{subID}/MNINonLinear/fsaverage_LR32k/{subID}.R.thickness.32k_fs_LR.shape.gii']
-	for file in zip_file.namelist():
-		for i in range(len(targets)):
-			if file.startswith(targets[i]): zip_file.extract(member=file, path=outpath)
-
-	#if exists(join(outpath, target_L)) and exists(join(outpath, target_R)):
-	for i in range(len(targets)):
-		shutil.move(join(outpath, targets[i]), outpath)
-	shutil.rmtree(join(outpath, subID))
-
-
-'''
-[copy_anatomical_data]
-To copy myelin density & cortical thickness files from the Database
-- copy_individual_data
-'''
-def copy_anatomical_data():
-	datapath = store7 + 'hblee/MPI/data'
-	sublist = sorted(listdir(datapath))
-
-	for sidx, subID in enumerate(sublist):
-		print(f'{sidx+1}th sub - {subID} - copy data from database\n')
-		copy_individual_data(subID)
 
 
 '''
 [compute_mean_values]
 To compute averaged myelin density & cortical thickness of PAC subregions for each individual
 
-Input:  1) /store7/hblee/MPI/data/{subID}/6.gradient_cosine/cluster_K3.{hemi}.32k_fs_LR.func.gii
-	2) /store7/hblee/MPI/data/{subID}/fsaverage_LR32k/{subID}.{hemi}.MyelinMap_BC.32k_fs_LR.func.gii
-	3) /store7/hblee/MPI/data/{subID}/fsaverage_LR32k/{subID}.{hemi}.thickness.32k_fs_LR.shape.gii
+Input:  1) {subpath}/gradient/cluster_K3.{hemi}.32k_fs_LR.func.gii
+	2) {subpath}/fsaverage_LR32k/{subID}.{hemi}.MyelinMap_BC.32k_fs_LR.func.gii
+	3) {subpath}/fsaverage_LR32k/{subID}.{hemi}.thickness.32k_fs_LR.shape.gii
 Output: 1) mean_myelin - vector of length 3 (0 if Error occured)
 	2) mean_thickness - vector of length 3 (0 if Error occured)
 '''
 def compute_mean_values(subID, hemi):
 	# 1) Get cluster label
-	subpath = f'{store7}hblee/MPI/data/{subID}'
-	labels_file = f'{subpath}/6.gradient_cosine/cluster_K3.{hemi}.32k_fs_LR.func.gii'
+	subpath = set_subpath(subID)
+	labels_file = f'{subpath}/gradient/cluster_K3.{hemi}.32k_fs_LR.func.gii'
 	labels = nib.load(labels_file).darrays[0].data    # 32492 vector
 
 	# 2) Get myelin density & thickness
-	datapath = subpath + '/fsaverage_LR32k'
-	myelin_file = f'{datapath}/{subID}.{hemi}.MyelinMap_BC.32k_fs_LR.func.gii'
+	inpath = subpath + '/fsaverage_LR32k'
+	myelin_file = f'{inpath}/{subID}.{hemi}.MyelinMap_BC.32k_fs_LR.func.gii'
 	if not isfile(myelin_file):
 		print('ERROR: Myelin file not exists!')
 		return 0, 0
 	myelin = nib.load(myelin_file).darrays[0].data
 
-	thickness_file = f'{datapath}/{subID}.{hemi}.thickness.32k_fs_LR.shape.gii'
+	thickness_file = f'{inpath}/{subID}.{hemi}.thickness.32k_fs_LR.shape.gii'
 	if not isfile(thickness_file):
 		print('ERROR: Thickness file not exists!')
 		return 0, 0
@@ -119,10 +80,9 @@ def compute_mean_values(subID, hemi):
 To compute matrix of averaged myelin density & cortical thickness values
 - compute_mean_values
 
-Output: /store7/hblee/MPI/2.additional/mean_myelin_thick_{hemi}.mat (N_valid_subj X N_clusters)
+Output: {basepath}/2.additional/mean_myelin_thick_{hemi}.mat (N_valid_subj X N_clusters)
 '''
 def main_compute_mean():
-	datapath = store7 + 'hblee/MPI/data'
 	sublist = sorted(listdir(datapath))
 
 	for hemi in ['L', 'R']:
@@ -136,7 +96,8 @@ def main_compute_mean():
 				mean_myelin.append(myelin)
 				mean_thickness.append(thickness)
 
-		sio.savemat(f'{store7}hblee/MPI/2.additional/mean_myelin_thick_{hemi}.mat', mdict={'mean_myelin': np.array(mean_myelin), 'mean_thickness': np.array(mean_thickness)})
+		sio.savemat(f'{basepath}/2.additional/mean_myelin_thick_{hemi}.mat'
+			    , mdict={'mean_myelin': np.array(mean_myelin), 'mean_thickness': np.array(mean_thickness)})
 	return
 
 
@@ -175,7 +136,7 @@ Output: t, p, corrected_p (print on terminal)
 '''
 
 def main_ttest(hemi):
-	mean_values = sio.loadmat(f'{store7}hblee/MPI/2.additional/mean_myelin_thick_{hemi}.mat')
+	mean_values = sio.loadmat(f'{basepath}/2.additional/mean_myelin_thick_{hemi}.mat')
 	mean_myelin = mean_values['mean_myelin']
 	mean_thickness = mean_values['mean_thickness']
 	
