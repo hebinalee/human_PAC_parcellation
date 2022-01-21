@@ -51,9 +51,9 @@ def map_t1w(labels, indices, ref_anat, out_path):
 [clustering]
 To parcellate PAC by performing K-means clustering based on SC
 
-Input:  1) /store7/hblee/MPI/data1/{subID}/tracto/fs_default.conn.matrix.npy
-		2) /store7/hblee/MPI/data1/{subID}/tracto/fs_default.seed_idx.npy
-Output: /store7/hblee/MPI/data1/{subID}/cluster4/{hemi}.clust.K3.nii.gz
+Input:  1) {subpath}/tracto/fs_default.conn.matrix.npy
+	2) {subpath}/tracto/fs_default.seed_idx.npy
+Output: {subpath}/cluster/{hemi}.clust.K3.nii.gz
 '''
 # clustering4 : remove more regions with zero-std, include STG and IS
 from sklearn.cluster import KMeans
@@ -115,10 +115,10 @@ def clustering(subID, hemi):
 [compute_meanSC]
 To compute averaged SC values for each clusters
 
-Input:  1) /store7/hblee/MPI/data1/{subID}/tracto/valid.conn.{hemi}.npy
-		2) /store7/hblee/MPI/data1/{subID}/tracto/valid.idx.{hemi}.npy
-		3) /store7/hblee/MPI/data1/{subID}/cluster4/{hemi}.clust.K3.nii.gz
-Output: /store7/hblee/MPI/data1/{subID}/cluster4/meanSC.{hemi}.K3.npy
+Input:  1) {subpath}/tracto/valid.conn.{hemi}.npy
+	2) {subpath}/tracto/valid.idx.{hemi}.npy
+	3) {subpath}/cluster/{hemi}.clust.K3.nii.gz
+Output: {subpath}/cluster/meanSC.{hemi}.K3.npy
 '''
 def compute_meanSC(subID, hemi):
 	subpath = set_inpath(subID)
@@ -147,7 +147,7 @@ def compute_meanSC(subID, hemi):
 [relabel]
 To compute new label of clustering results based on meanSC values with STG ans IS
 
-Input:  /store7/hblee/MPI/data1/{subID}/cluster4/meanSC.{hemi}.K3.npy
+Input:  {subpath}/cluster/meanSC.{hemi}.K3.npy
 Output: relabel
 '''
 def relabel(subID, hemi):
@@ -187,10 +187,10 @@ def relabel(subID, hemi):
 To align label of clustering results based on SC with STG ans IS and save NIFTI file
 - relabel
 
-Input:  1) /store7/hblee/MPI/data1/{subID}/cluster4/{hemi}.clust.K3.nii.gz
-		2) /store7/hblee/MPI/data1/{subID}/cluster4/meanSC.{hemi}.K3.npy
-Output: 1) /store7/hblee/MPI/data1/{subID}/cluster4/relabel-SC/{hemi}.clust.K3.relabel.nii.gz
-		2) /store7/hblee/MPI/data1/{subID}/cluster4/relabel-SC/meanSC.{hemi}.K3.npy
+Input:  1) {subpath}/cluster/{hemi}.clust.K3.nii.gz
+	2) {subpath}/cluster/meanSC.{hemi}.K3.npy
+Output: 1) {subpath}/cluster/relabel-SC/{hemi}.clust.K3.relabel.nii.gz
+	2) {subpath}/cluster/relabel-SC/meanSC.{hemi}.K3.npy
 '''
 def relabel_clust(subID, hemi):
 	subpath = set_inpath(subID)
@@ -233,8 +233,8 @@ def relabel_clust(subID, hemi):
 [regist_clust]
 To register label data: native volume space -> standard volume space
 
-Input:  /store7/hblee/MPI/data1/{subID}/cluster4/relabel-SC/{hemi}.clust.K3.relabel.nii.gz
-Output: /store7/hblee/MPI/data1/{subID}/cluster4/relabel-SC/{hemi}.clust.K3.relabel.MNI2mm.nii.gz
+Input:  {subpath}/cluster/relabel-SC/{hemi}.clust.K3.relabel.nii.gz
+Output: {subpath}/cluster/relabel-SC/{hemi}.clust.K3.relabel.MNI2mm.nii.gz
 '''
 def regist_clust(subID):
 	subpath = set_inpath(subID)
