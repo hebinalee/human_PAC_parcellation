@@ -9,4 +9,23 @@
 　　　**3)** Identification of functional hierarchy of subregions via gradient analysis<br />
 　　　**4)** Anatomical analysis with myelin density & cortical thickness<br /><br />
 
+...bash
+├── 1.parcellation
+│   ├── README.md
+│   ├── find_optimal_k.py
+│   └── PAC_clustering.py
+├── 2.FC_characterization
+│   ├── README.md
+│   ├── compute_meanFC.py
+│   └── statistical_test_FC.py
+├── 3.gradient
+│   ├── README.md
+│   ├── gradient_analysis.py
+│   └── statistical_test_FG.py
+├── 4.anatomical_analysis
+│   ├── README.md
+│   ├── myelin_thickness.py
+└── README.md
+...
+
 :pushpin: **copyrightⓒ 2021 All rights reserved by Hyebin Lee and Kyoungseob Byeon**
