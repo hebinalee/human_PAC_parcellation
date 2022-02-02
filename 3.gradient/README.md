@@ -6,4 +6,4 @@ We utilized **[Koen Haak's code](https://github.com/koenhaak/congrads)** to comp
 **[BCT Toolbox](https://sites.google.com/site/bctnet/)** was used for gradient analysis.<br /><br />
 
 - **gradient_analysis.py**　-----　To perform gradient analysis<br />
-- **statistical_test.py**　　　-----　To conduct statistical test<br /><br />
+- **statistical_test_FG.py**　　-----　To conduct statistical test<br /><br />
