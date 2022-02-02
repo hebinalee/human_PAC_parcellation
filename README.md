@@ -10,7 +10,7 @@
 　　　**3)** Identification of functional hierarchy of subregions via gradient analysis<br />
 　　　**4)** Anatomical analysis with myelin density & cortical thickness<br /><br />
 
-## Directory structure
+## Directory Structure
 ```bash
 ├── 1.parcellation
 │   ├── README.md
