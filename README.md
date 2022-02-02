@@ -1,6 +1,6 @@
 # human_PAC_parcellation
 ## About The Project
-:large_blue_diamond: This is code for the paper **"Individual-level parcellation of the human auditory cortex and comparison of their functional connectivity pattern"** (Submitted)<br />
+:large_blue_diamond: This is code for the paper **"Structural and functional characterization of subregions in Heschl’s gyri"** (Submitted)<br />
 :large_blue_diamond: **Paper link:** will be updated<br />
 :large_blue_diamond: If you use this code, please cite the article.<br /><br />
 
