@@ -8,7 +8,7 @@
 　　　**2)** Characterization of subregions in terms of functional connectome pattern<br />
 　　　**3)** Identification of functional hierarchy of subregions via gradient analysis<br />
 　　　**4)** Anatomical analysis with myelin density & cortical thickness<br /><br />
-'''bash
+```bash
 ├── 1.parcellation
 │   ├── README.md
 │   ├── find_optimal_k.py
@@ -25,6 +25,6 @@
 │   ├── README.md
 │   ├── myelin_thickness.py
 └── README.md
-'''
+```
 
 :pushpin: **copyrightⓒ 2021 All rights reserved by Hyebin Lee and Kyoungseob Byeon**
