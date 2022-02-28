@@ -21,10 +21,10 @@ from kneed import KneeLocator
 - The elbow was defined as the point where the derivatives changes the most
 '''
 
-basepath = 'X:/path/myfolder'
-datapath = basepath + '/data'
+BASE_DIR = 'X:/path/myfolder'
+DATA_DIR = BASE_DIR + '/data'
 
-def set_subpath(subID): return f'{datapath}/{subID}'
+def set_subjdir(subID): return f'{DATA_DIR}/{subID}'
 
 
 
@@ -32,22 +32,22 @@ def set_subpath(subID): return f'{datapath}/{subID}'
 [kmeans_sse]
 To perform K-means clustering when 1<K<=10 and compute SSE 
 
-Input:  1) {subpath}/tracto/fs_default.conn.matrix.npy
-	2) {subpath}/tracto/fs_default.seed_idx.npy
-Output: {subpath}/cluster/{hemi}-sse.npy
+Input:  1) {subjdir}/tracto/fs_default.conn.matrix.npy
+	2) {subjdir}/tracto/fs_default.seed_idx.npy
+Output: {subjdir}/cluster/{hemi}-sse.npy
 '''
 def kmeans_sse(subID, hemi):
-	subpath = set_inpath(subID)
-	path_conn = join(subpath, 'tracto')
-	path_clust = join(subpath, 'cluster')
-	outpath = f'{path_clust}/optimal_k'
-	if not os.path.exists(path_clust):
-		os.makedirs(path_clust)
+	subjdir = set_subjdir(subID)
+	conn_dir = join(subjdir, 'tracto')
+	clust_dir = join(subjdir, 'cluster')
+	out_dir = f'{clust_dir}/optimal_k'
+	if not os.path.exists(clust_dir):
+		os.makedirs(clust_dir)
 
 	# 1) Load input files (connectivity matrix, seed indices)
 	# the connectivity map include null seed & null target voxels at first row & column
-	conn_mat = np.load(join(path_conn, 'fs_default.conn.matrix.npy'))[1:, 1:]
-	seed_idx = np.load(join(path_conn, 'fs_default.seed_idx.npy'))
+	conn_mat = np.load(join(conn_dir, 'fs_default.conn.matrix.npy'))[1:, 1:]
+	seed_idx = np.load(join(conn_dir, 'fs_default.seed_idx.npy'))
 	
 	# 2) Consider voxels with connectivity value larger than 100
 	valid_seed = np.where(conn_mat.sum(axis=1) >= 100)
@@ -84,7 +84,7 @@ def kmeans_sse(subID, hemi):
 			curr_center = centroids[orig_labels[i]]
 			curr_sse += np.sum((hemi_conn[i,:] - curr_center)**2)
 		sse[ncluster-2] = curr_sse
-	np.save(f'{outpath}/{hemi}-sse.npy', sse)
+	np.save(f'{out_dir}/{hemi}-sse.npy', sse)
 	return sse
 
 
@@ -93,10 +93,10 @@ def kmeans_sse(subID, hemi):
 To perform K-means clustering for whole subjects, compute averaged SSE, and plot it 
 - kmeans_sse
 
-Output: {basepath}/clustFC/{hemi}-sse.npy
+Output: {BASE_DIR}/clustFC/{hemi}-sse.npy
 '''
 def main_sse(a=0, b=0):
-	sublist = sorted(listdir(datapath))
+	sublist = sorted(listdir(DATA_DIR))
 	if type(a) == str:
 		a = sublist.index(a)
 	
@@ -110,7 +110,7 @@ def main_sse(a=0, b=0):
 		for sidx, subID in enumerate(sublist):
 			print(f'{sidx+1}th sub - {subID} - clustering\n')
 			sse[sidx] = kmeans_sse(subID, hemi)
-		np.save(f'{basepath}/clustFC/{hemi}-sse.npy', sse)
+		np.save(f'{BASE_DIR}/clustFC/{hemi}-sse.npy', sse)
 
 		# Plot SSE and find elbow
 		x = np.arange(2,11)
@@ -120,5 +120,5 @@ def main_sse(a=0, b=0):
 		plt.xlabel('k')
 		plt.ylabel('SSE')
 		plt.vlines(kn.knee, plt.ylim()[0], plt.ylim()[1], linestyles='dashed')
-		plt.savefig(f'{basepath}/clustFC/figure/{hemi}-sse.png')
+		plt.savefig(f'{BASE_DIR}/clustFC/figure/{hemi}-sse.png')
 		plt.close()
