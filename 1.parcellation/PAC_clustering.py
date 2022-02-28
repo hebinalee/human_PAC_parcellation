@@ -18,10 +18,10 @@ from mayavi import mlab
 import nibabel as nib
 import matplotlib.pyplot as plt
 
-basepath = 'X:/path/myfolder'
-datapath = basepath + '/data'
+BASE_DIR = 'X:/path/myfolder'
+DATA_DIR = BASE_DIR + '/data'
 
-def set_subpath(subID): return f'{datapath}/{subID}'
+def set_subjdir(subID): return f'{DATA_DIR}/{subID}'
 
 Nclusters = 3
 
@@ -51,24 +51,24 @@ def map_t1w(labels, indices, ref_anat, out_path):
 [clustering]
 To parcellate PAC by performing K-means clustering based on SC
 
-Input:  1) {subpath}/tracto/fs_default.conn.matrix.npy
-	2) {subpath}/tracto/fs_default.seed_idx.npy
-Output: {subpath}/cluster/{hemi}.clust.K3.nii.gz
+Input:  1) {subj_dir}/tracto/fs_default.conn.matrix.npy
+	2) {subj_dir}/tracto/fs_default.seed_idx.npy
+Output: {subj_dir}/cluster/{hemi}.clust.K3.nii.gz
 '''
 # clustering4 : remove more regions with zero-std, include STG and IS
 from sklearn.cluster import KMeans
 def clustering(subID, hemi):
-	subpath = set_inpath(subID)
-	path_conn = join(subpath, 'tracto')
-	path_clust = join(subpath, 'cluster')
-	if not os.path.exists(path_clust):
-		os.makedirs(path_clust)
+	subj_dir = set_input_dir(subID)
+	conn_dir = join(subj_dir, 'tracto')
+	clust_dir = join(subj_dir, 'cluster')
+	if not os.path.exists(clust_dir):
+		os.makedirs(clust_dir)
 
 	# 1) Load input files (T1 image, connectivity matrix, seed indices)
-	ref_anat = nib.load(join(subpath, 'T1w/T1w_acpc_dc_restore_brain.nii.gz'))
+	ref_anat = nib.load(join(subj_dir, 'T1w/T1w_acpc_dc_restore_brain.nii.gz'))
 	# the connectivity map include null seed & null target voxels at first row & column
-	conn_mat = np.load(join(path_conn, 'fs_default.conn.matrix.npy'))[1:, 1:]
-	seed_idx = np.load(join(path_conn, 'fs_default.seed_idx.npy'))
+	conn_mat = np.load(join(conn_dir, 'fs_default.conn.matrix.npy'))[1:, 1:]
+	seed_idx = np.load(join(conn_dir, 'fs_default.seed_idx.npy'))
 
 	
 	# 2) Consider voxels with connectivity value larger than 100
@@ -107,7 +107,7 @@ def clustering(subID, hemi):
 			orig_labels + 1,
 			tuple(hemi_idx.T),
 			ref_anat,
-			f'{path_clust}/{hemi}.clust.K{.nii.gz' %(path_clust, hemi, Nclusters)
+			f'{clust_dir}/{hemi}.clust.K{.nii.gz' %(clust_dir, hemi, Nclusters)
 			)
 
 
@@ -115,20 +115,20 @@ def clustering(subID, hemi):
 [compute_meanSC]
 To compute averaged SC values for each clusters
 
-Input:  1) {subpath}/tracto/valid.conn.{hemi}.npy
-	2) {subpath}/tracto/valid.idx.{hemi}.npy
-	3) {subpath}/cluster/{hemi}.clust.K3.nii.gz
-Output: {subpath}/cluster/meanSC.{hemi}.K3.npy
+Input:  1) {subj_dir}/tracto/valid.conn.{hemi}.npy
+	2) {subj_dir}/tracto/valid.idx.{hemi}.npy
+	3) {subj_dir}/cluster/{hemi}.clust.K3.nii.gz
+Output: {subj_dir}/cluster/meanSC.{hemi}.K3.npy
 '''
 def compute_meanSC(subID, hemi):
-	subpath = set_inpath(subID)
-	outpath = f'{basepath}/clustFC/figure/mean_sc/rawlabel'
-	path_conn = join(subpath, 'tracto')
-	seed_conn = np.load(f'{path_conn}/valid.conn.{hemi}.npy')
-	seed_idx = np.load(f'{path_conn}/valid.idx.{hemi}.npy')
+	subj_dir = set_input_dir(subID)
+	out_dir = f'{BASE_DIR}/clustFC/figure/mean_sc/rawlabel'
+	conn_dir = join(subj_dir, 'tracto')
+	seed_conn = np.load(f'{conn_dir}/valid.conn.{hemi}.npy')
+	seed_idx = np.load(f'{conn_dir}/valid.idx.{hemi}.npy')
 
-	path_clust = join(subpath, 'cluster')
-	clust_file = f'{path_clust}/{hemi}.clust.K{Nclusters}.nii.gz'
+	clust_dir = join(subj_dir, 'cluster')
+	clust_file = f'{clust_dir}/{hemi}.clust.K{Nclusters}.nii.gz'
 	clust = nib.load(clust_file).get_fdata()
 	clust_label = np.array([clust[i[0], i[1], i[2]] for i in tuple(seed_idx)])
 
@@ -138,20 +138,20 @@ def compute_meanSC(subID, hemi):
 		clust_sc = seed_conn[idx, :]
 		averaged_sc[label-1, :] = np.mean(clust_sc, axis = 0)
 
-	np.save(f'{path_clust}/meanSC.{hemi}.K{Nclusters}.npy', averaged_sc)
+	np.save(f'{clust_dir}/meanSC.{hemi}.K{Nclusters}.npy', averaged_sc)
 	plt.imshow(averaged_sc)
-	plt.savefig(f'{outpath}/{hemi}-{subID}.png')
+	plt.savefig(f'{out_dir}/{hemi}-{subID}.png')
 
 
 '''
 [relabel]
 To compute new label of clustering results based on meanSC values with STG ans IS
 
-Input:  {subpath}/cluster/meanSC.{hemi}.K3.npy
+Input:  {subj_dir}/cluster/meanSC.{hemi}.K3.npy
 Output: relabel
 '''
 def relabel(subID, hemi):
-	subpath = set_inpath(subID) + '/cluster'
+	subj_dir = set_input_dir(subID) + '/cluster'
 
 	# 1) Get index for STG & IS
 	if hemi == 'L':
@@ -162,7 +162,7 @@ def relabel(subID, hemi):
 	relabel = np.zeros(Nclusters).astype(int)
 
 	# 2) Load SC matrix
-	sub_conn = np.load(f'{subpath}/meanSC.{hemi}.K{Nclusters}.npy')
+	sub_conn = np.load(f'{subj_dir}/meanSC.{hemi}.K{Nclusters}.npy')
 	features = sub_conn[:, selected]
 
 	# 3) Compute new label
@@ -187,15 +187,15 @@ def relabel(subID, hemi):
 To align label of clustering results based on SC with STG ans IS and save NIFTI file
 - relabel
 
-Input:  1) {subpath}/cluster/{hemi}.clust.K3.nii.gz
-	2) {subpath}/cluster/meanSC.{hemi}.K3.npy
-Output: 1) {subpath}/cluster/relabel/{hemi}.clust.K3.relabel.nii.gz
-	2) {subpath}/cluster/relabel/meanSC.{hemi}.K3.npy
+Input:  1) {subj_dir}/cluster/{hemi}.clust.K3.nii.gz
+	2) {subj_dir}/cluster/meanSC.{hemi}.K3.npy
+Output: 1) {subj_dir}/cluster/relabel/{hemi}.clust.K3.relabel.nii.gz
+	2) {subj_dir}/cluster/relabel/meanSC.{hemi}.K3.npy
 '''
 def relabel_clust(subID, hemi):
-	subpath = set_inpath(subID)
-	path_clust = join(subpath, 'cluster')
-	outpath = join(path_clust, 'relabel')
+	subj_dir = set_input_dir(subID)
+	clust_dir = join(subj_dir, 'cluster')
+	out_dir = join(clust_dir, 'relabel')
 
 	if hemi == 'L':
 		refID = '174841'
@@ -203,15 +203,15 @@ def relabel_clust(subID, hemi):
 		refID = '165638'
 	
 	if subID == refID:
-		shutil.copy(f'{path_clust}/{hemi}.clust.K{Nclusters}.nii.gz', f'{outpath}/{hemi}.clust.K{Nclusters}.relabel.nii.gz')
+		shutil.copy(f'{clust_dir}/{hemi}.clust.K{Nclusters}.nii.gz', f'{out_dir}/{hemi}.clust.K{Nclusters}.relabel.nii.gz')
 	else:
 		new_label = relabel(subID, hemi)
 		
-		if not exists(outpath):
-			os.makedirs(outpath)
+		if not exists(out_dir):
+			os.makedirs(out_dir)
 
 		# Relabel cluster label file (native volume space)
-		ref_clust = nib.load(f'{path_clust}/{hemi}.clust.K{Nclusters}.nii.gz')
+		ref_clust = nib.load(f'{clust_dir}/{hemi}.clust.K{Nclusters}.nii.gz')
 		clust = ref_clust.get_fdata()
 		relabeled = np.zeros_like(clust)
 		#for label in range(Nclusters):
@@ -220,31 +220,31 @@ def relabel_clust(subID, hemi):
 		relabeled[clust==2]  = new_label[1]
 		relabeled[clust==3]  = new_label[2]
 		img = nib.Nifti1Image(relabeled, ref_clust.affine)
-		nib.save(img, f'{outpath}/{hemi}.clust.K{Nclusters}.relabel.nii.gz')
+		nib.save(img, f'{out_dir}/{hemi}.clust.K{Nclusters}.relabel.nii.gz')
 
 		# relabel meanSC file
-		meansc = np.load(f'{path_clust}/meanSC.{hemi}.K{Nclusters}.npy')
+		meansc = np.load(f'{clust_dir}/meanSC.{hemi}.K{Nclusters}.npy')
 		sort_idx = np.argsort(new_label)[::-1]
 		meansc = meansc[sort_idx, :]
-		np.save(f'{outpath}/meanSC.{hemi}.K{Nclusters}.npy', meansc)
+		np.save(f'{out_dir}/meanSC.{hemi}.K{Nclusters}.npy', meansc)
 
 
 '''
 [regist_clust]
 To register label data: native volume space -> standard volume space
 
-Input:  {subpath}/cluster/relabel/{hemi}.clust.K3.relabel.nii.gz
-Output: {subpath}/cluster/relabel/{hemi}.clust.K3.relabel.MNI2mm.nii.gz
+Input:  {subj_dir}/cluster/relabel/{hemi}.clust.K3.relabel.nii.gz
+Output: {subj_dir}/cluster/relabel/{hemi}.clust.K3.relabel.MNI2mm.nii.gz
 '''
 def regist_clust(subID):
-	subpath = set_inpath(subID)
+	subj_dir = set_input_dir(subID)
 	standard = '/usr/local/fsl/data/standard/MNI152_T1_2mm_brain.nii.gz'
-	warpfile = join(subpath, 'T1w/acpc_dc2standard.nii.gz')
-	path_clust = join(subpath, 'cluster')
+	warpfile = join(subj_dir, 'T1w/acpc_dc2standard.nii.gz')
+	clust_dir = join(subj_dir, 'cluster')
 
 	for hemi in ['L', 'R']:
-		infile = path_clust + '/relabel/%s.clust.K%d.relabel.nii.gz' %(hemi, Nclusters)
-		outfile = path_clust + '/relabel/%s.clust.K%d.relabel.MNI2mm.nii.gz' %(hemi, Nclusters)
+		infile = clust_dir + '/relabel/%s.clust.K%d.relabel.nii.gz' %(hemi, Nclusters)
+		outfile = clust_dir + '/relabel/%s.clust.K%d.relabel.MNI2mm.nii.gz' %(hemi, Nclusters)
 		os.system('applywarp --rel --interp=nn -i %s -r %s -w %s -o %s' %(infile, standard, warpfile, outfile))
 
 
@@ -253,7 +253,7 @@ def regist_clust(subID):
 Main function to perform analysis
 '''
 def main(a, b, startname=None):
-	sublist = sorted(listdir(datapath))
+	sublist = sorted(listdir(DATA_DIR))
 	if startname:
 		a = sublist.index(startname)
 	
