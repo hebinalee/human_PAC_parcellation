@@ -13,10 +13,10 @@ import numpy as np
 import nibabel as nib
 import matplotlib.pyplot as plt
 
-basepath = 'X:/path/myfolder'
-datapath = basepath + '/data'
+BASE_DIR = 'X:/path/myfolder'
+DATA_DIR = BASE_DIR + '/data'
 
-def set_subpath(subID): return f'{datapath}/{subID}'
+def set_subjdir(subID): return f'{DATA_DIR}/{subID}'
 
 Nclusters = 3
 
@@ -47,21 +47,21 @@ def pearson_conn(x, y):
 To compute averaged FC values for each clusters
 - pearson_conn
 
-Input:  1) {subpath}/rsfMRI/rfMRI_REST1_LR.nii.gz
-	2) {subpath}/tracto/roi_MNI2mm.nii.gz
-	3) {subpath}/cluster/relabel/{hemi}.clust.K3.relabel.MNI2mm.nii.gz
+Input:  1) {subj_dir}/rsfMRI/rfMRI_REST1_LR.nii.gz
+	2) {subj_dir}/tracto/roi_MNI2mm.nii.gz
+	3) {subj_dir}/cluster/relabel/{hemi}.clust.K3.relabel.MNI2mm.nii.gz
 * All inputs are on the standard volume space (MNI2mm)
-Output: {subpath}/cluster/meanFC.{hemi}.K3.npy (3 X 82)
+Output: {subj_dir}/cluster/meanFC.{hemi}.K3.npy (3 X 82)
 '''
 def compute_meanFC(subID):
-	subpath = set_inpath(subID)
-	path_clust = join(subpath, 'cluster/relabel/')
+	subj_dir = set_input_dir(subID)
+	clust_dir = join(subj_dir, 'cluster/relabel/')
 
 	# 1) Load fMRI and ROI data
-	fmri_file = join(subpath, 'rsfMRI/rfMRI_REST1_LR.nii.gz')
+	fmri_file = join(subj_dir, 'rsfMRI/rfMRI_REST1_LR.nii.gz')
 	if not exists(fmri_file):
-		fmri_file = join(subpath, 'rsfMRI/rfMRI_REST1_RL.nii.gz')
-	roi_file = join(subpath, 'tracto/roi_MNI2mm.nii.gz')
+		fmri_file = join(subj_dir, 'rsfMRI/rfMRI_REST1_RL.nii.gz')
+	roi_file = join(subj_dir, 'tracto/roi_MNI2mm.nii.gz')
 
 	fmri = nib.load(fmri_file).get_fdata()
 	roi = nib.load(roi_file).get_fdata()
@@ -79,7 +79,7 @@ def compute_meanFC(subID):
 
 	for hemi in ['L', 'R']:
 		meanFC = np.zeros((Nclusters, 41))
-		clust_file = f'{path_clust}/{hemi}.clust.K{Nclusters}.relabel.MNI2mm.nii.gz'
+		clust_file = f'{clust_dir}/{hemi}.clust.K{Nclusters}.relabel.MNI2mm.nii.gz'
 		clust = nib.load(clust_file).get_fdata()
 
 		for label in range(Nclusters):
@@ -90,7 +90,7 @@ def compute_meanFC(subID):
 				conn = np.arctanh(((corr_r+1)/2)**6)	# soft thresholding -> r-to-z transform
 				meanFC[label, :] = np.mean(conn, axis=0)
 
-		np.save(f'{path_clust}/meanFC.{hemi}.K{Nclusters}.npy', meanFC)
+		np.save(f'{clust_dir}/meanFC.{hemi}.K{Nclusters}.npy', meanFC)
 
 
 '''
@@ -98,7 +98,7 @@ def compute_meanFC(subID):
 Main function to perform analysis
 '''
 def main(a, b, startname=None):
-	sublist = listdir(datapath)
+	sublist = listdir(DATA_DIR)
 	if startname:
 		a = sublist.index(startname)
 	
