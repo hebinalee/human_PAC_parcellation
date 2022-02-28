@@ -29,9 +29,9 @@ DATA_DIR = BASE_DIR + '/data'
 sys.path.append(BASE_DIR + '/congrads-master')
 import conmap_surf2, conmap_sim
 
-def set_subdir(subID): return f'{DATA_DIR}/{subID}'
-def set_inpath(subID): return f'{DATA_DIR}/{subID}/seed_surf'
-def set_outpath(subID): return f'{DATA_DIR}/{subID}/gradient'
+def set_subjdir(subID): return f'{DATA_DIR}/{subID}'
+def set_inputdir(subID): return f'{DATA_DIR}/{subID}/seed_surf'
+def set_outdir(subID): return f'{DATA_DIR}/{subID}/gradient'
 
 
 
@@ -45,10 +45,10 @@ Output: S (N_seed_voxels X N_seed_voxels)
 '''
 from brainspace.gradient.kernels import compute_affinity
 def calculate_sim(subID, hemi):
-	inpath = set_inpath(subID)
-	x = sio.loadmat(f'{inpath}/merged_seed.{hemi}.32k_fs_LR.correlation1.mat')['R']
+	INPUT_DIR = set_inputdir(subID)
+	x = sio.loadmat(f'{INPUT_DIR}/merged_seed.{hemi}.32k_fs_LR.correlation1.mat')['R']
 	S = compute_affinity(x, kernel='cosine', sparsity=0)
-	x = sio.loadmat(f'{inpath}/merged_seed.{hemi}.32k_fs_LR.correlation2.mat')['R']
+	x = sio.loadmat(f'{INPUT_DIR}/merged_seed.{hemi}.32k_fs_LR.correlation2.mat')['R']
 	S += compute_affinity(x, kernel='cosine', sparsity=0)
 	S /= 2
 	return S
@@ -79,9 +79,9 @@ def gradient(hemi):
 
 	print('Gradien analysis: DONE')
 	for sidx, subID in enumerate(sublist):
-		outpath = set_outpath(subID)
-		if not exists(outpath): os.makedirs(outpath)
-		sio.savemat(f'{outpath}/merged_seed.{hemi}.32k_fs_LR.gradient.mat', mdict={'gradient':gradients[sidx], 'lambda':lambdas[sidx]})
+		OUT_DIR = set_outdir(subID)
+		if not exists(OUT_DIR): os.makedirs(OUT_DIR)
+		sio.savemat(f'{OUT_DIR}/merged_seed.{hemi}.32k_fs_LR.gradient.mat', mdict={'gradient':gradients[sidx], 'lambda':lambdas[sidx]})
 
 
 '''
@@ -96,8 +96,8 @@ def group_average(hemi):
 	sublist = sorted(listdir(DATA_DIR))
 	
 	for sidx, subID in enumerate(sublist):
-		outpath = set_outpath(subID)
-		x = sio.loadmat(f'{outpath}/merged_seed.{hemi}.32k_fs_LR.gradient.mat')
+		OUT_DIR = set_outdir(subID)
+		x = sio.loadmat(f'{OUT_DIR}/merged_seed.{hemi}.32k_fs_LR.gradient.mat')
 		if not sidx:
 			X = x['gradient']
 		else:
@@ -129,8 +129,8 @@ def align_gradient(hemi):
 	
 	X = []
 	for sidx, subID in enumerate(sublist):
-		outpath = set_outpath(subID)
-		x = sio.loadmat(f'{outpath}/merged_seed.{hemi}.32k_fs_LR.gradient.mat')['gradient']
+		OUT_DIR = set_outdir(subID)
+		x = sio.loadmat(f'{OUT_DIR}/merged_seed.{hemi}.32k_fs_LR.gradient.mat')['gradient']
 		X.append(x)
 
 	ref = sio.loadmat(f'{BASE_DIR}/gradient/merged_seed.{hemi}.32k_fs_LR.mean_gradient.mat')['grad_ref']
@@ -138,8 +138,8 @@ def align_gradient(hemi):
 	aligned = PA.aligned_
 
 	for sidx, subID in enumerate(sublist):
-		outpath = set_outpath(subID)
-		sio.savemat(f'{outpath}/merged_seed.{hemi}.32k_fs_LR.gradient.aligned.mat', mdict={'gradient':aligned[sidx]})
+		OUT_DIR = set_outdir(subID)
+		sio.savemat(f'{OUT_DIR}/merged_seed.{hemi}.32k_fs_LR.gradient.aligned.mat', mdict={'gradient':aligned[sidx]})
 
 
 '''
