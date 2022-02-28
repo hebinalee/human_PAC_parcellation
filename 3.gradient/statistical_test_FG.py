@@ -27,15 +27,15 @@ import nibabel as nib
 from scipy.stats import ttest_ind
 from statsmodels.stats.multitest import multipletests
 
-basepath = 'X:/path/myfolder'
-datapath = basepath + '/data'
+BASE_DIR = 'X:/path/myfolder'
+DATA_DIR = BASE_DIR + '/data'
 
-sys.path.append(basepath + '/congrads-master')
+sys.path.append(BASE_DIR + '/congrads-master')
 import conmap_surf2, conmap_sim
 
-def set_subpath(subID): return f'{datapath}/{subID}'
-def set_inpath(subID): return f'{datapath}/{subID}'
-def set_outpath(subID): return f'{datapath}/{subID}/gradient'
+def set_subjdir(subID): return f'{DATA_DIR}/{subID}'
+def set_inputdir(subID): return f'{DATA_DIR}/{subID}'
+def set_out_dir(subID): return f'{DATA_DIR}/{subID}/gradient'
 
 Nclusters = 3
 
@@ -47,20 +47,20 @@ To assign label to all seed voxels
 and register labeled seed area onto fsaverage_LR32k surface space (via standard volume space)
 - manual_interpolation
 
-Input:  1) {subpath}/cluster/relabel/{hemi}.clust.K3.relabel.nii.gz
-	2) {subpath}/gradient/seed_{hemi}.nii.gz
-Output: 1) {subpath}/gradient/{hemi}.clust.K3.dilated.nii.gz
-	2) {subpath}/gradient/{hemi}.clust.K3.dilated.MNI2mm.nii.gz
-	3) {subpath}/gradient/cluster_K3.{hemi}.32k_fs_LR.func.gii
+Input:  1) {subj_dir}/cluster/relabel/{hemi}.clust.K3.relabel.nii.gz
+	2) {subj_dir}/gradient/seed_{hemi}.nii.gz
+Output: 1) {subj_dir}/gradient/{hemi}.clust.K3.dilated.nii.gz
+	2) {subj_dir}/gradient/{hemi}.clust.K3.dilated.MNI2mm.nii.gz
+	3) {subj_dir}/gradient/cluster_K3.{hemi}.32k_fs_LR.func.gii
 '''
 def dilate_seed(subID, hemi):
-	subpath = set_subpath(subID)
-	inpath = set_inpath(subID)
-	outpath = set_outpath(subID)
+	subj_dir = set_subjdir(subID)
+	input_dir = set_inputdir(subID)
+	out_dir = set_out_dir(subID)
 	
-	labels_dir = f'{inpath}/cluster/relabel-SC/{hemi}.clust.K3.relabel.nii.gz'
-	seed_dir = f'{outpath}/seed_{hemi}.nii.gz'
-	output_dir = f'{outpath}/{hemi}.clust.K3.dilated.nii.gz'
+	labels_dir = f'{input_dir}/cluster/relabel-SC/{hemi}.clust.K3.relabel.nii.gz'
+	seed_dir = f'{out_dir}/seed_{hemi}.nii.gz'
+	output_dir = f'{out_dir}/{hemi}.clust.K3.dilated.nii.gz'
 	ref_img = nib.load(labels_dir)
 	labels = ref_img.get_fdata()
 	seed = nib.load(seed_dir).get_fdata()
@@ -72,13 +72,13 @@ def dilate_seed(subID, hemi):
 	
 	# 2) Register to volume MNI2mm space
 	standard = '/usr/local/fsl/data/standard/MNI152_T1_2mm_brain.nii.gz'
-	warpfile = f'{inpath}/T1w/acpc_dc2standard.nii.gz'
-	output_MNI_dir = f'{outpath}/{hemi}.clust.K3.dilated.MNI2mm.nii.gz'
+	warpfile = f'{input_dir}/T1w/acpc_dc2standard.nii.gz'
+	output_MNI_dir = f'{out_dir}/{hemi}.clust.K3.dilated.MNI2mm.nii.gz'
 	os.system(f'applywarp --rel --interp=nn -i {output_dir} -r {standard} -w {warpfile} -o {output_MNI_dir}')
 	
 	# 3) Map onto surface space
-	surf_dir = f'{subpath}/fsaverage_LR32k/{subID}.{hemi}.midthickness.32k_fs_LR.surf.gii'
-	output_surf_dir = f'{outpath}/cluster_K3.{hemi}.32k_fs_LR.func.gii'
+	surf_dir = f'{subj_dir}/fsaverage_LR32k/{subID}.{hemi}.midthickness.32k_fs_LR.surf.gii'
+	output_surf_dir = f'{out_dir}/cluster_K3.{hemi}.32k_fs_LR.func.gii'
 	os.system(f'wb_command -volume-to-surface-mapping {output_MNI_dir} {surf_dir} {output_surf_dir} -enclosing')
 
 
@@ -127,26 +127,26 @@ def manual_interpolation(input_data, target):
 [save_norm_img]
 To normalize gradient data and crop individual seed area (normalize -> crop)
 
-Input:  1) {basepath}/gradient/merged_seed.{hemi}.32k_fs_LR.func.gii
-	2) {subpath}/gradient/seed_{hemi}.32k_fs_LR.func.gii
-	3) {subpath}/gradientv/merged_seed.{hemi}.32k_fs_LR.gradient.aligned.mat
-Output: {subpath}/gradient/merged_seed.{hemi}.32k_fs_LR.cmaps.aligned.norm.crop.func.gii
+Input:  1) {BASE_DIR}/gradient/merged_seed.{hemi}.32k_fs_LR.func.gii
+	2) {subj_dir}/gradient/seed_{hemi}.32k_fs_LR.func.gii
+	3) {subj_dir}/gradientv/merged_seed.{hemi}.32k_fs_LR.gradient.aligned.mat
+Output: {subj_dir}/gradient/merged_seed.{hemi}.32k_fs_LR.cmaps.aligned.norm.crop.func.gii
 * All I/Os are on the fsaverage_LR32k surface space
 '''
 def save_norm_img(subID, hemi, nmaps=3):
-	subpath = set_subpath(subID)
-	outpath = set_outpath(subID)
+	subj_dir = set_subjdir(subID)
+	out_dir = set_out_dir(subID)
 
-	merged_seed_img = nib.load(f'{basepath}/gradient/merged_seed.{hemi}.32k_fs_LR.func.gii')
+	merged_seed_img = nib.load(f'{BASE_DIR}/gradient/merged_seed.{hemi}.32k_fs_LR.func.gii')
 	merged_seed = merged_seed_img.darrays[0].data
 	mergedSeedIndices = np.where(merged_seed==1)
 
-	seed_img = nib.load(f'{outpath}/seed_{hemi}.32k_fs_LR.func.gii')
+	seed_img = nib.load(f'{out_dir}/seed_{hemi}.32k_fs_LR.func.gii')
 	seed = seed_img.darrays[0].data
 	maskIndices = np.where(seed==0)
 
-	ref_img = nib.load(f'{outpath}/merged_seed.{hemi}.32k_fs_LR.cmaps.aligned.crop.func.gii')
-	gradient = sio.loadmat(f'{outpath}/merged_seed.{hemi}.32k_fs_LR.gradient.aligned.mat')['gradient']
+	ref_img = nib.load(f'{out_dir}/merged_seed.{hemi}.32k_fs_LR.cmaps.aligned.crop.func.gii')
+	gradient = sio.loadmat(f'{out_dir}/merged_seed.{hemi}.32k_fs_LR.gradient.aligned.mat')['gradient']
 
 	for i in range(nmaps):
 		dat = np.zeros_like(merged_seed)
@@ -154,7 +154,7 @@ def save_norm_img(subID, hemi, nmaps=3):
 		dat[maskIndices] = 0
 		ref_img.darrays[i].data = dat
 	
-	outfile = f'{outpath}/merged_seed.{hemi}.32k_fs_LR.cmaps.aligned.norm.crop.func.gii'
+	outfile = f'{out_dir}/merged_seed.{hemi}.32k_fs_LR.cmaps.aligned.norm.crop.func.gii'
 	nib.save(ref_img, outfile)
 
 
@@ -162,19 +162,19 @@ def save_norm_img(subID, hemi, nmaps=3):
 [calculate_mean_grad]
 To calculate mean gradient values for 3 PAC subregions
 
-Input:  1) {subpath}/gradient/cluster_K3.{hemi}.32k_fs_LR.func.gii
-	2) {subpath}/gradient/merged_seed.{hemi}.32k_fs_LR.cmaps.aligned.norm.crop.func.gii
+Input:  1) {subj_dir}/gradient/cluster_K3.{hemi}.32k_fs_LR.func.gii
+	2) {subj_dir}/gradient/merged_seed.{hemi}.32k_fs_LR.cmaps.aligned.norm.crop.func.gii
 Output: mean_gradient - Vector with length 3 (If failed, return None)
 * All I/Os are on the fsaverage_LR32k surface space
 '''
 def calculate_mean_grad(subID, hemi):
-	subpath = set_subpath(subID)
-	outpath = set_outpath(subID)
-	if exists(f'{outpath}/cluster_K3.{hemi}.32k_fs_LR.label.gii'):
-		os.remove(f'{outpath}/cluster_K3.{hemi}.32k_fs_LR.label.gii')
+	subj_dir = set_subjdir(subID)
+	out_dir = set_out_dir(subID)
+	if exists(f'{out_dir}/cluster_K3.{hemi}.32k_fs_LR.label.gii'):
+		os.remove(f'{out_dir}/cluster_K3.{hemi}.32k_fs_LR.label.gii')
 
-	labels = nib.load(f'{outpath}/cluster_K3.{hemi}.32k_fs_LR.func.gii').darrays[0].data
-	gradient = nib.load(f'{outpath}/merged_seed.{hemi}.32k_fs_LR.cmaps.aligned.norm.crop.func.gii').darrays[0].data
+	labels = nib.load(f'{out_dir}/cluster_K3.{hemi}.32k_fs_LR.func.gii').darrays[0].data
+	gradient = nib.load(f'{out_dir}/merged_seed.{hemi}.32k_fs_LR.cmaps.aligned.norm.crop.func.gii').darrays[0].data
 
 	mean_gradient = []
 	for i in range(Nclusters):
@@ -195,10 +195,10 @@ To compute mean gradient values for 3 PAC subregions for all individials and ret
 - calculate_mean_grad
 
 Input:
-Output: {basepath}/gradient/mean_gradient_{hemi}.mat (N_valid_subj X N_clusters)
+Output: {BASE_DIR}/gradient/mean_gradient_{hemi}.mat (N_valid_subj X N_clusters)
 '''
 def save_mean_grad():
-	sublist = sorted(listdir(datapath))
+	sublist = sorted(listdir(DATA_DIR))
 
 	for hemi in ['L', 'R']:
 		mean_gradient = []
@@ -208,7 +208,7 @@ def save_mean_grad():
 			if results:
 				mean_gradient.append(results)
 
-		sio.savemat(f'{basepath}/gradient/mean_gradient_{hemi}.mat', mdict={'mean_grad': np.array(mean_gradient)})
+		sio.savemat(f'{BASE_DIR}/gradient/mean_gradient_{hemi}.mat', mdict={'mean_grad': np.array(mean_gradient)})
 	return
 
 
@@ -216,11 +216,11 @@ def save_mean_grad():
 [ttest]
 To perform two-sample t-test for each pair of PAC subregions (FDR correction is applied)
 
-Input:  {basepath}/gradient/mean_gradient_{hemi}.mat
+Input:  {BASE_DIR}/gradient/mean_gradient_{hemi}.mat
 Output: t, p, corrected_p (print on terminal)
 '''
 def ttest(hemi):
-	mean_grad = sio.loadmat(f'{basepath}/gradient/mean_gradient_{hemi}.mat')['mean_grad']
+	mean_grad = sio.loadmat(f'{BASE_DIR}/gradient/mean_gradient_{hemi}.mat')['mean_grad']
 	Nsub = mean_grad.shape[0]
 	
 	t = np.zeros(Nclusters)
@@ -242,7 +242,7 @@ def ttest(hemi):
 Main function to perform analysis
 '''
 def main(a, b, hemi='L', startname=None):
-	sublist = sorted(listdir(datapath))
+	sublist = sorted(listdir(DATA_DIR))
 	if startname:
 		a = sublist.index(startname)
 	if b==0:
