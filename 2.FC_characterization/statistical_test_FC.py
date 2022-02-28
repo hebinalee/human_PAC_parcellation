@@ -1,5 +1,5 @@
 #################################################################
-## STATISTICAL TEST
+## TO CONDUCT STATISTICAL TEST
 ##
 ## roiconn : To save the FC matrix in target ROI-wise
 ## ttest   : To perform two-sample t-test for each pair of ROIs
