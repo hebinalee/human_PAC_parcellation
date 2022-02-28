@@ -23,15 +23,15 @@ import numpy as np
 import nibabel as nib
 import zipfile
 
-basepath = 'X:/path/myfolder'
-datapath = basepath + '/data'
+BASE_DIR = 'X:/path/myfolder'
+DATA_DIR = BASE_DIR + '/data'
 
-sys.path.append(basepath + '/congrads-master')
+sys.path.append(BASE_DIR + '/congrads-master')
 import conmap_surf2, conmap_sim
 
-def set_subpath(subID): return f'{datapath}/{subID}'
-def set_inpath(subID): return f'{datapath}/{subID}/seed_surf'
-def set_outpath(subID): return f'{datapath}/{subID}/gradient'
+def set_subdir(subID): return f'{DATA_DIR}/{subID}'
+def set_inpath(subID): return f'{DATA_DIR}/{subID}/seed_surf'
+def set_outpath(subID): return f'{DATA_DIR}/{subID}/gradient'
 
 
 
@@ -64,7 +64,7 @@ Output: {subpath}/gradient/merged_seed.{hemi}.32k_fs_LR.gradient.mat
 * All I/Os are on the fsaverage_LR32k surface space
 '''
 def gradient(hemi):
-	sublist = sorted(listdir(datapath))
+	sublist = sorted(listdir(DATA_DIR))
 	
 	S = []
 	for sidx, subID in enumerate(sublist):
@@ -89,11 +89,11 @@ def gradient(hemi):
 To compute group averaged gradient data by performing PCA on stacks of individual data
 
 Input:  {subpath}/gradient/merged_seed.{hemi}.32k_fs_LR.gradient.mat
-Output: {basepath}/gradient/merged_seed.{hemi}.32k_fs_LR.mean_gradient.mat
+Output: {BASE_DIR}/gradient/merged_seed.{hemi}.32k_fs_LR.mean_gradient.mat
 * All I/Os are on the fsaverage_LR32k surface space
 '''
 def group_average(hemi):
-	sublist = sorted(listdir(datapath))
+	sublist = sorted(listdir(DATA_DIR))
 	
 	for sidx, subID in enumerate(sublist):
 		outpath = set_outpath(subID)
@@ -109,7 +109,7 @@ def group_average(hemi):
 	PM.fit(X)
 	X_ref = PM.maps_
 	print('Shape of X after PCA: ', X_ref.shape)
-	sio.savemat(f'{basepath}/gradient/merged_seed.{hemi}.32k_fs_LR.mean_gradient.mat', mdict={'grad_ref':X_ref})
+	sio.savemat(f'{BASE_DIR}/gradient/merged_seed.{hemi}.32k_fs_LR.mean_gradient.mat', mdict={'grad_ref':X_ref})
 
 
 '''
@@ -117,7 +117,7 @@ def group_average(hemi):
 To align individual gradient results using procrustes alignment algorithm
 
 Input:  1) {subpath}/gradient/merged_seed.{hemi}.32k_fs_LR.gradient.mat
-	2) {basepath}/gradient/merged_seed.{hemi}.32k_fs_LR.mean_gradient.mat
+	2) {BASE_DIR}/gradient/merged_seed.{hemi}.32k_fs_LR.mean_gradient.mat
 Output: {subpath}/gradient/merged_seed.{hemi}.32k_fs_LR.gradient.aligned.mat
 * All I/Os are on the fsaverage_LR32k surface space
 '''
@@ -125,7 +125,7 @@ from brainspace.gradient.alignment import ProcrustesAlignment
 def align_gradient(hemi):
 	PA = ProcrustesAlignment(n_iter=10)
 
-	sublist = sorted(listdir(datapath))
+	sublist = sorted(listdir(DATA_DIR))
 	
 	X = []
 	for sidx, subID in enumerate(sublist):
@@ -133,7 +133,7 @@ def align_gradient(hemi):
 		x = sio.loadmat(f'{outpath}/merged_seed.{hemi}.32k_fs_LR.gradient.mat')['gradient']
 		X.append(x)
 
-	ref = sio.loadmat(f'{basepath}/gradient/merged_seed.{hemi}.32k_fs_LR.mean_gradient.mat')['grad_ref']
+	ref = sio.loadmat(f'{BASE_DIR}/gradient/merged_seed.{hemi}.32k_fs_LR.mean_gradient.mat')['grad_ref']
 	PA.fit(X, reference=ref)
 	aligned = PA.aligned_
 
@@ -147,7 +147,7 @@ def align_gradient(hemi):
 Main function to perform analysis
 '''
 def main(a, b, hemi='L', startname=None):
-	sublist = sorted(listdir(datapath))
+	sublist = sorted(listdir(DATA_DIR))
 	if startname:
 		a = sublist.index(startname)
 	if b==0:
