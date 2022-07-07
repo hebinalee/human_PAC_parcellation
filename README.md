@@ -1,7 +1,7 @@
 # human_PAC_parcellation
 ## About The Project
 :large_blue_diamond: This is code for the paper **"In-vivo data-driven parcellation of Heschl’s gyrus using structural connectivity"** (Accepted)<br />
-:large_blue_diamond: **Paper link:** will be updated<br />
+:large_blue_diamond: **Paper link:** https://www.nature.com/articles/s41598-022-15083-z<br />
 :large_blue_diamond: If you use this code, please cite the article.<br /><br />
 
 ✔ This study is divided into following 4 steps:<br />
